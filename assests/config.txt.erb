@@ -1,0 +1,13 @@
+EMAIL_LIST jfv@stowers.org
+EMAIL_SERVER localhost:25
+WEB_DIR_ROOT http://molbio/solexaRuns/
+NUM_LEADING_DIRS_TO_STRIP 1
+POST_RUN_COMMAND /qcdata/SIMR_pipeline_scripts/post_runner.rb <%= @flowcell_id %> > post_run.out 2>&1
+EXPT_DIR <%= @input_dir %>
+<% @rows.each do |row| %>
+<%= "#{row[:number]}:ELAND_GENOME /qcdata/igenome/#{row[:organism]}\n" %>
+<%= "#{row[:number]}:ANALYSIS #{row[:analysis]}\n" %>
+<%= "#{row[:number]}:ELAND_MAX_MATCHES 10\n" %>
+<%= "#{row[:number]}:USE_BASES #{row[:bases]}\n" %>
+<% end %>
+

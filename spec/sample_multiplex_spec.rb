@@ -9,16 +9,19 @@ describe Illuminati::SampleMultiplex do
   end
 
   it "should find a mutliplex file in base path" do
-    @multiplex.find_file(@base_path).should_not == nil
+    out = capture(:stdout){@multiplex.find_file(@base_path).should_not == nil}
   end
 
   it "should not find multiplex file in invalid location" do
-    @multiplex.find_file("/tmp").should == nil
+    out = capture(:stdout) {@multiplex.find_file("/tmp").should == nil}
   end
 
   it "should parse multiplex csv file" do
-    data = @multiplex.find(@base_path)
-    data[0][:lane].should == "1"
-    data[-1][:lane].should == "8"
+    capture(:stdout) do
+      data = @multiplex.find(@base_path)
+      data[0][:lane].should == "1"
+      data[-1][:lane].should == "8"
+      data.size.should == 38
+    end
   end
 end

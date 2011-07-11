@@ -2,7 +2,10 @@
 
 $:.unshift(File.join(File.dirname(__FILE__), "lib"))
 
+require 'erb'
 require 'illuminati'
+
+CONFIG_TEMPLATE_PATH = File.expand_path(File.join(File.dirname(__FILE__), "assests", "config.txt.erb"))
 
 class ConfigFileMaker
   def self.make data, flowcell, output_file
@@ -16,7 +19,7 @@ class ConfigFileMaker
     @flowcell_id = flowcell.flowcell_id
   end
 
-  def combine_rows rows
+  def combine_lanes rows
     combined_rows = Array.new
     current_row = 0
     combined_rows << rows[current_row]
@@ -35,7 +38,7 @@ class ConfigFileMaker
   end
 
   def output output_file
-    template = ERB.new File.new("#{SCRIPT_PATH}/config_template_1_8.erb").read, nil, "%<>"
+    template = ERB.new File.new(CONFIG_TEMPLATE_PATH).read, nil, "%<>"
     output = template.result(binding)
 
     puts "config file"
@@ -50,6 +53,7 @@ class ConfigFileMaker
     end
   end
 end #ConfigFile
+
 class SampleSheetMaker
 
   def self.make data, output_file
@@ -109,7 +113,6 @@ class BarcodeFileMaker
       end
     end
   end
-
 end # BarcodeFile
 
 
@@ -132,7 +135,7 @@ flowcell = FlowcellData.new(flowcell_id)
 
 lims_lanes = lims.lanes
 
-multiplex_data = MultiplexData.new flowcell.flowcell_id, flowcell.base_dir
+multiplex_data = SampleMultiplex.new flowcell.base_dir
 
 multplex_rows = multiplex_data.add_to(lims_lanes.clone)
 sample_sheet = SampleSheetMaker.make multplex_rows, sample_sheet_output_file
