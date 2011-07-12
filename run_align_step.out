@@ -1,5 +1,0 @@
-starting alignment step for 639R2AAXX
-/home/solexa/CASAVA_1.8.0/bin/configureAlignment.pl /solexa/110624_ILLUMINA-C4D679_00067_FC_639R2AAXX/config.txt
-/home/solexa/CASAVA_1.8.0/bin/configureAlignment.pl /solexa/110624_ILLUMINA-C4D679_00067_FC_639R2AAXX/config.txt --make
-cd /solexa/110624_ILLUMINA-C4D679_00067_FC_639R2AAXX/Aligned; nohup make -j 8 all > make.aligned.out 2>&1  &
-Done
