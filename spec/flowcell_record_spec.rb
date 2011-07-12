@@ -42,6 +42,16 @@ describe Illuminati::FlowcellRecord do
     hash[:samples].size.should == 38
   end
 
+  it "should not allow modifying of values through hash" do
+    hash = @valid_record.to_h
+    @valid_record.id.should == hash[:flowcell_id]
+    hash[:flowcell_id] = "123"
+    @valid_record.id.should_not == hash[:flowcell_id]
+    @valid_record.lanes[0].samples[0].name.should == hash[:samples][0][:name]
+    hash[:samples][0][:name] = "bad name"
+    @valid_record.lanes[0].samples[0].name.should_not == hash[:samples][0][:name]
+  end
+
   it "should convert to yaml" do
     yaml = @valid_record.to_yaml
     yaml.should_not == nil
