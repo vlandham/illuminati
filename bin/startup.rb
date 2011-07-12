@@ -1,11 +1,12 @@
 #! /usr/bin/env ruby
 
-$: << File.expand_path(File.dirname(__FILE__))
+$:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
-require 'flowcell_data'
+require 'illuminati'
 
-ALIGN_SCRIPT = File.join(SCRIPT_PATH, "run_align_step.rb")
-CONFIG_SCRIPT = File.join(SCRIPT_PATH, "config_maker_1_8.rb")
+BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
+ALIGN_SCRIPT = File.join(BASE_BIN_DIR, "align_runner.rb")
+CONFIG_SCRIPT = File.join(BASE_BIN_DIR, "config_maker.rb")
 
 flowcell_id = ARGV[0]
 
@@ -15,6 +16,8 @@ else
 	puts "ERROR: no flow cell ID provided"
 	exit
 end
+
+module Illuminati
 
 class ScriptWritter
   def initialize filename
@@ -36,7 +39,7 @@ class ScriptWritter
   end
 end
 
-def write_admin_script flowcell_id
+def self.write_admin_script flowcell_id
   flowcell_id = flowcell_id.upcase
 
   flowcell = FlowcellData.new flowcell_id
@@ -103,7 +106,8 @@ def write_admin_script flowcell_id
 
   script.close
 end
+end
 
 if __FILE__ == $0
-  write_admin_script flowcell_id
+  Illuminati::write_admin_script flowcell_id
 end
