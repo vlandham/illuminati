@@ -48,7 +48,7 @@ module Illuminati
     end
 
     def control
-      self.genome =~ /.*phiX.*/ ? "Y" : "N"
+      self.genome =~ /.*phi[xX].*/ ? "Y" : "N"
     end
 
     def read_count
@@ -83,6 +83,7 @@ module Illuminati
           type, barcode = barcode_of(multi_data)
           sample.barcode = barcode
           sample.barcode_type = type
+          sample.name = multi_data[:name] if multi_data[:name]
           self.barcode_type = type
           self.samples << sample
         end

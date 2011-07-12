@@ -31,4 +31,26 @@ describe Illuminati::Sample do
     @sample.barcode_type = :custom
     @sample.id.should == @lims_data[:lane]
   end
+
+  it "should indicate if sample is control or not" do
+    @sample.genome = "phix"
+    @sample.control.should == "Y"
+    @sample.genome = "phiX"
+    @sample.control.should == "Y"
+    @sample.genome = "mm9"
+    @sample.control.should == "N"
+    @sample.genome = "hg19"
+    @sample.control.should == "N"
+  end
+
+  it "should deal with barcodes" do
+    barcode = "ACATAG"
+    @sample.barcode = barcode
+    @sample.barcode_type = :illumina
+    @sample.illumina_barcode.should == barcode
+    @sample.custom_barcode.should == ""
+    @sample.barcode_type = :custom
+    @sample.illumina_barcode.should == ""
+    @sample.custom_barcode.should == barcode
+  end
 end
