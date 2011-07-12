@@ -43,7 +43,7 @@ module Illuminati
     def clean_name
       clean_name = name.strip
       clean_name.gsub!(/\s+/,'_')
-      clean_name.gsub!(/[^0-9A-Za-z_]/, '_')
+      clean_name.gsub!(/[^0-9A-Za-z_-]/, '_')
       clean_name
     end
 
