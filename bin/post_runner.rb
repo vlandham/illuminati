@@ -75,7 +75,7 @@ class PostRunner
   def start_flowcell
     Emailer.email "starting post run for #{@flowcell_id}" unless @test
     status "postrun start"
-    flowcell = FlowcellData.new @flowcell_id, @test
+    flowcell = Iluminati::FlowcellData.new @flowcell_id, @test
 
     @post_run_script_filename = File.join(flowcell.base_dir, "postrun_#{flowcell.flowcell_id}.sh")
     @post_run_script = File.new(@post_run_script_filename, 'w')

@@ -1,13 +1,11 @@
 #! /usr/bin/env ruby
 
-$: << File.expand_path(File.dirname(__FILE__))
+$:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
-require 'flowcell_data'
-require 'emailer'
-require 'solexa_logger'
+require 'illuminati'
 
 flowcell_id = ARGV[0]
-@test = false
+@test = true
 
 output_filename = "run_align_step.out"
 
@@ -24,16 +22,17 @@ def execute command
 end
 
 output "starting alignment step for #{flowcell_id}"
-Emailer.email "starting align step for #{flowcell_id}"
-SolexaLogger::log flowcell_id, "starting alignment", @test
+Illuminati::Emailer.email "starting align step for #{flowcell_id}" unless @test
+Illuminati::SolexaLogger::log flowcell_id, "starting alignment", @test
 
 flowcell = nil
 
 begin
-  flowcell = FlowcellData.new(flowcell_id)
-rescue
+  flowcell = Illuminati::FlowcellData.new(flowcell_id)
+rescue Exception => err
   output "Problem creating flowcell"
   output "Flowcell id: #{flowcell_id}."
+  output err
 end
 
 if flowcell

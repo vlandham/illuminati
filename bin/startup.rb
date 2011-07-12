@@ -42,7 +42,7 @@ end
 def self.write_admin_script flowcell_id
   flowcell_id = flowcell_id.upcase
 
-  flowcell = FlowcellData.new flowcell_id
+  flowcell = Illuminati::FlowcellData.new flowcell_id
   puts flowcell.base_dir
 
   script = ScriptWritter.new flowcell.script_path
