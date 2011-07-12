@@ -86,7 +86,9 @@ module Illuminati
           puts "ERROR: yaml field not present: #{field}"
         end
       end
-      data
+      # ensure these aren't editable afterwards
+      cloned_data = Marshal.load(Marshal.dump(data))
+      cloned_data
     end
 
     def to_yaml
