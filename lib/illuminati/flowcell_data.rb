@@ -101,6 +101,10 @@ class FlowcellData
     File.join(base_dir, "custom_barcodes_#{lane}.txt")
   end
 
+  def info_path
+    File.join(base_dir, "flowcell_info.yaml")
+  end
+
   def single_directory_in base_path, directory_pattern
     input_paths = directories_in base_path, directory_pattern
     if input_paths.size > 1

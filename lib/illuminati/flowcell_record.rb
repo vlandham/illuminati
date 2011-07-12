@@ -153,7 +153,7 @@ end
 
 module Illuminati
   class FlowcellRecord
-    attr_accessor :id, :lanes, :paths
+    attr_accessor :id, :lanes, :paths, :multiplex
 
     def self.find flowcell_id, paths = FlowcellData.new(flowcell_id)
       flowcell = FlowcellRecord.new(flowcell_id)
@@ -161,8 +161,8 @@ module Illuminati
       flowcell.id = flowcell_id
 
       lims_lane_data = LimsAdapter.lanes(flowcell_id)
-      multiplex_data = SampleMultiplex.find(paths.base_dir)
-      flowcell.add_lanes lims_lane_data, multiplex_data
+      flowcell.multiplex = SampleMultiplex.find(paths.base_dir)
+      flowcell.add_lanes lims_lane_data, flowcell.multiplex
 
       flowcell
     end
