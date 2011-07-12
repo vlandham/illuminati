@@ -33,13 +33,13 @@ module Illuminati
         LANE_DATA.each_with_index do |header, index|
           lane_data[header] = raw_lane[index]
         end
-        lanes << lane_data
+        lanes << clean_lane(lane_data)
       end
       lanes
     end
 
     def self.clean_lane lane_data
-      lane_data[:organism] = translate_organism(lane_data[:organism])
+      lane_data[:genome] = translate_organism(lane_data[:genome])
       lane_data[:protocol] = translate_protocol(lane_data[:protocol])
       lane_data[:bases] = get_bases(lane_data[:protocol])
       lane_data

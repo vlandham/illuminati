@@ -7,7 +7,7 @@ module Illuminati
     LIMS_DATA = [:lane, :genome, :name, :samples, :cycles, :type, :protocol]
     attr_accessor *LIMS_DATA
 
-    attr_accessor :barcode
+    attr_accessor :barcode, :barcode_type
 
     def initialize
       @barcode = ""
@@ -26,11 +26,23 @@ module Illuminati
       end
     end
 
-    def add_multiplex_data multiplex_data
+    def illumina_barcode
+      self.barcode_type == :illumina ? self.barcode : ""
+    end
+
+    def custom_barcode
+      self.barcode_type == :custom ? self.barcode : ""
+    end
+
+    def id
+      id = "#{self.lane}"
+      id += "_#{illumina_barcode}" unless illumina_barcode.empty?
+      id
     end
 
     def clean_name
-      clean_name = name.gsub(/\s+/,'')
+      clean_name = name.strip
+      clean_name.gsub!(/\s+/,'_')
       clean_name.gsub!(/[^0-9A-Za-z_]/, '_')
       clean_name
     end
@@ -41,6 +53,10 @@ module Illuminati
 
     def read_count
       self.protocol == "eland_pair" ? 2 : 1
+    end
+
+    def description
+      "lane #{self.lane} name #{self.clean_name}"
     end
   end
 end
@@ -66,6 +82,7 @@ module Illuminati
           sample.add_lims_data(lane_data)
           type, barcode = barcode_of(multi_data)
           sample.barcode = barcode
+          sample.barcode_type = type
           self.barcode_type = type
           self.samples << sample
         end
@@ -95,13 +112,13 @@ module Illuminati
   class FlowcellRecord
     attr_accessor :id, :lanes, :paths
 
-    def self.find flowcell_id
-      self.id = flowcell_id
+    def self.find flowcell_id, paths = FlowcellData.new(flowcell_id)
       flowcell = FlowcellRecord.new(flowcell_id)
-      flowcell.paths = FlowcellData.new(flowcell_id)
+      flowcell.paths = paths
+      flowcell.id = flowcell_id
 
       lims_lane_data = LimsAdapter.lanes(flowcell_id)
-      multiplex_data = MultiplexAdapter.find(flowcell_id)
+      multiplex_data = SampleMultiplex.find(paths.base_dir)
       flowcell.add_lanes lims_lane_data, multiplex_data
 
       flowcell
@@ -109,6 +126,7 @@ module Illuminati
 
     def initialize flowcell_id
       self.id = flowcell_id
+      self.lanes = []
     end
 
     def add_lanes lims_lane_data, multiplex_data
@@ -120,6 +138,28 @@ module Illuminati
         self.lanes << lane
       end
       self.lanes.sort! {|x,y| x.number <=> y.number}
+    end
+
+    def to_sample_sheet
+      sample_sheet =  ["fcid", "lane", "sampleid",
+                       "sampleref", "index", "description",
+                       "control", "recipe", "operator",
+                       "sampleproject"].join(",")
+      sample_sheet += "\n"
+
+      self.lanes.each do |lane|
+        lane.samples.each do |sample|
+          data = []
+          data << self.id << lane.number << sample.id
+          data << sample.genome << sample.illumina_barcode
+          data << sample.description << sample.control
+          data << "see lims" << "see lims"
+          data << self.id
+          sample_sheet += data.join(",")
+          sample_sheet += "\n"
+        end
+      end
+      sample_sheet
     end
   end
 end

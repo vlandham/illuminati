@@ -66,10 +66,10 @@ class SampleSheetMaker
   end
 
   def output output_file
-    sample_sheet =  ["FCID", "Lane", "SampleID",
-                     "SampleRef", "index", "Description",
-                     "Control", "Recipe", "Operator",
-                     "SampleProject"].join(",")
+    sample_sheet =  ["fcid", "lane", "sampleid",
+                     "sampleref", "index", "description",
+                     "control", "recipe", "operator",
+                     "sampleproject"].join(",")
     sample_sheet += "\n"
 
     @rows.each do |row|
