@@ -53,4 +53,21 @@ describe Illuminati::Sample do
     @sample.illumina_barcode.should == ""
     @sample.custom_barcode.should == barcode
   end
+
+  it "should convert to yaml" do
+    @sample.add_lims_data(@lims_data)
+    yaml = @sample.to_yaml
+    yaml.should_not == nil
+    yaml_hash = Hash[YAML::load(yaml).map {|k,v| [k.to_sym, v]}]
+    yaml_hash[:name].should == @lims_data[:name]
+    big_name = "wacky name with - spaces"
+    @sample.name = big_name
+    yaml_hash = Hash[YAML::load(@sample.to_yaml).map {|k,v| [k.to_sym, v]}]
+    yaml_hash[:name].should == big_name
+  end
+
+  it "should convert to hash" do
+    hash = @sample.add_lims_data(@lims_data).to_h
+    hash[:name].should == @lims_data[:name]
+  end
 end

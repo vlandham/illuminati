@@ -9,6 +9,17 @@ class FlowcellData
     @test = testing
   end
 
+  def to_h
+    data_headers = [:base_dir, :unaligned_dir, :aligned_dir, :qc_dir]
+    hash = Hash.new
+    data_headers.each do |header|
+      if self.respond_to?(header)
+        hash[header] = self.send(header)
+      end
+    end
+    hash
+  end
+
   def base_dir
     path = File.join(FLOWCELL_PATH_BASE, "*#{@flowcell_id}")
     paths = Dir.glob(path)

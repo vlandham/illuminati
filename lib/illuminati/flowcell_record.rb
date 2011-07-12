@@ -1,10 +1,12 @@
+require 'yaml'
 require 'illuminati/flowcell_data'
 require 'illuminati/sample_multiplex'
 require 'illuminati/lims_adapter'
+require 'illuminati/views'
 
 module Illuminati
   class Sample
-    LIMS_DATA = [:lane, :genome, :name, :samples, :cycles, :type, :protocol]
+    LIMS_DATA = [:lane, :genome, :name, :samples, :cycles, :type, :protocol, :bases]
     attr_accessor *LIMS_DATA
 
     attr_accessor :barcode, :barcode_type
@@ -23,6 +25,17 @@ module Illuminati
             puts "ERROR: lane does not have attribute: #{key}"
           end
         end
+      end
+      self
+    end
+
+    def lane_equal other_sample
+      [:genome, :cycles, :protocol, :type].each do |lane_data|
+        next if lane_data == :lane
+        if self.send(lane_data) != other_sample.send(lane_data)
+          return false
+        end
+        true
       end
     end
 
@@ -57,6 +70,27 @@ module Illuminati
 
     def description
       "lane #{self.lane} name #{self.clean_name}"
+    end
+
+    def to_h
+      data_fields = LIMS_DATA
+      data_fields << :id
+      data_fields << :barcode << :barcode_type
+      data_fields << :read_count
+      data = Hash.new
+      data_fields.each do |field|
+        if self.respond_to?(field)
+          value = self.send(field)
+          data[field] = value unless !value
+        else
+          puts "ERROR: yaml field not present: #{field}"
+        end
+      end
+      data
+    end
+
+    def to_yaml
+      self.to_h.to_yaml
     end
   end
 end
@@ -104,7 +138,15 @@ module Illuminati
       end
     end
 
+    def to_h
+      samples[0].to_h if samples[0]
+    end
+
     def equal other_lane
+      if ((!samples[0]) or (!other_lane.samples[0]))
+        return false
+      end
+      samples[0].lane_equal(other_lane.samples[0])
     end
   end
 end
@@ -142,25 +184,37 @@ module Illuminati
     end
 
     def to_sample_sheet
-      sample_sheet =  ["fcid", "lane", "sampleid",
-                       "sampleref", "index", "description",
-                       "control", "recipe", "operator",
-                       "sampleproject"].join(",")
-      sample_sheet += "\n"
+      view = SampleSheetView.new(self)
+      view.write
+    end
 
+    def to_config_file
+      view = ConfigFileView.new(self)
+      view.write
+    end
+
+
+    def to_yaml
+      self.to_h.to_yaml
+    end
+
+    def to_h
+      hash = Hash.new
+      hash[:flowcell_id] = self.id
+      hash[:samples] = []
+      each_sample_with_lane do |sample, lane|
+        hash[:samples] << sample.to_h
+      end
+      hash[:paths] = self.paths.to_h
+      hash
+    end
+
+    def each_sample_with_lane
       self.lanes.each do |lane|
         lane.samples.each do |sample|
-          data = []
-          data << self.id << lane.number << sample.id
-          data << sample.genome << sample.illumina_barcode
-          data << sample.description << sample.control
-          data << "see lims" << "see lims"
-          data << self.id
-          sample_sheet += data.join(",")
-          sample_sheet += "\n"
+          yield sample, lane
         end
       end
-      sample_sheet
     end
   end
 end

@@ -5,9 +5,10 @@ $:.unshift(File.join(File.dirname(__FILE__), "lib"))
 require 'erb'
 require 'illuminati'
 
-CONFIG_TEMPLATE_PATH = File.expand_path(File.join(File.dirname(__FILE__), "assests", "config.txt.erb"))
 
 class ConfigFileMaker
+  CONFIG_TEMPLATE_PATH = File.expand_path(File.join(File.dirname(__FILE__), "assests", "config.txt.erb"))
+
   def self.make data, flowcell, output_file
     cf = ConfigFileMaker.new(data, flowcell)
     cf.output(output_file)
@@ -54,46 +55,7 @@ class ConfigFileMaker
   end
 end #ConfigFile
 
-class SampleSheetMaker
-
-  def self.make data, output_file
-    ss = SampleSheetMaker.new data
-    ss.output output_file
-  end
-
-  def initialize data
-    @rows = data
-  end
-
-  def output output_file
-    sample_sheet =  ["fcid", "lane", "sampleid",
-                     "sampleref", "index", "description",
-                     "control", "recipe", "operator",
-                     "sampleproject"].join(",")
-    sample_sheet += "\n"
-
-    @rows.each do |row|
-      data = [:fcid, :lane, :sample_id,
-              :sample_ref, :index, :description,
-              :control, :recipe, :operator,
-              :sample_project].collect {|field| row[field]}
-      sample_sheet +=  data.join(",")
-      sample_sheet += "\n"
-    end
-
-    puts ""
-    puts sample_sheet
-    if output_file
-      path = File.expand_path(output_file)
-      puts "Creating SampleSheet.csv at #{path}"
-      File.open(path, 'w') do |file|
-        file << sample_sheet
-      end
-    end
-  end
-end # SampleSheet
-
-class BarcodeFileMaker
+class CustomBarcodeFileMaker
   def self.make multiplex_data, flowcell
     rtn = []
     (1..8).each do |lane|
@@ -118,24 +80,33 @@ end # BarcodeFile
 
 if __FILE__ == $0
 
-flowcell_id = ARGV[0]
+  flowcell_id = ARGV[0]
 
-config_output_file = ARGV[1]
-sample_sheet_output_file = ARGV[2]
+  config_output_file = ARGV[1]
+  sample_sheet_output_file = ARGV[2]
 
-if flowcell_id
-  puts "Flowcell ID: #{flowcell_id}"
-else
-  puts "ERROR: no flow cell ID provided"
-  exit
-end
+  if flowcell_id
+    puts "Flowcell ID: #{flowcell_id}"
+  else
+    puts "ERROR: no flow cell ID provided"
+    exit
+  end
 
 lims = LimsData.new flowcell_id
 flowcell = FlowcellData.new(flowcell_id)
 
+multiplex_data = SampleMultiplex.new flowcell.base_dir
+
+lanes_with_barcodes = CustomBarcodeFileMaker.make multiplex_data.get_multiplex_data, flowcell
+
+if !lanes_with_barcodes.empty?
+  puts "Custom Barcode files made for lanes #{lanes_with_barcodes.join(", ")}"
+else
+  puts "No custom Barcodes found"
+end
+
 lims_lanes = lims.lanes
 
-multiplex_data = SampleMultiplex.new flowcell.base_dir
 
 multplex_rows = multiplex_data.add_to(lims_lanes.clone)
 sample_sheet = SampleSheetMaker.make multplex_rows, sample_sheet_output_file
@@ -143,13 +114,6 @@ sample_sheet = SampleSheetMaker.make multplex_rows, sample_sheet_output_file
 rows = lims.lanes_combined
 config_file = ConfigFileMaker.make rows, flowcell, config_output_file
 
-lanes_with_barcodes = BarcodeFileMaker.make multiplex_data.get_multiplex_data, flowcell
-
-if !lanes_with_barcodes.empty?
-  puts "Custom Barcode files made for lanes #{lanes_with_barcodes.join(", ")}"
-else
-  puts "No custom Barcodes found"
-end
 end
 
 
