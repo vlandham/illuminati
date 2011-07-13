@@ -31,12 +31,11 @@ module Illuminati
 
     def lane_equal other_sample
       [:genome, :cycles, :protocol, :type].each do |lane_data|
-        next if lane_data == :lane
         if self.send(lane_data) != other_sample.send(lane_data)
           return false
         end
-        true
       end
+      true
     end
 
     def illumina_barcode
