@@ -5,7 +5,7 @@ $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 require 'illuminati'
 
 flowcell_id = ARGV[0]
-@test = true
+@test = false
 
 output_filename = "run_align_step.out"
 
