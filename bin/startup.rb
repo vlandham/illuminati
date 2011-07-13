@@ -8,14 +8,6 @@ BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
 ALIGN_SCRIPT = File.join(BASE_BIN_DIR, "align_runner.rb")
 CONFIG_SCRIPT = File.join(BASE_BIN_DIR, "config_maker.rb")
 
-flowcell_id = ARGV[0]
-
-if flowcell_id
-	puts "Flowcell ID: #{flowcell_id}"
-else
-	puts "ERROR: no flow cell ID provided"
-	exit
-end
 
 module Illuminati
 
@@ -109,5 +101,13 @@ end
 end
 
 if __FILE__ == $0
+  flowcell_id = ARGV[0]
+
+  if flowcell_id
+    puts "Flowcell ID: #{flowcell_id}"
+  else
+    puts "ERROR: no flow cell ID provided"
+    exit
+  end
   Illuminati::write_admin_script flowcell_id
 end
