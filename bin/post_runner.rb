@@ -39,7 +39,7 @@ class PostRunner
 
   def initialize fcid
     @flowcell_id = fcid
-    @test = false
+    @test = true
     @post_run_script = nil
   end
 
@@ -261,7 +261,7 @@ class PostRunner
     log "# #{export_files.size} export files found in #{starting_path}"
 
     export_file_data = get_file_data export_files, "_export\.txt\.gz"
-    options = {:prefix => "", :suffix => "_export.txt.gz"}
+    options = {:prefix => "s_", :suffix => "_export.txt.gz"}
     export_groups = group_files export_file_data, output_path, filter_path, options
     export_groups
   end
