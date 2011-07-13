@@ -58,6 +58,12 @@ module Illuminati
       SolexaLogger.log(@flowcell_id, message) unless @test
     end
 
+    def title message
+      log "#########################"
+      log "## #{message}"
+      log "#########################"
+    end
+
     def check_exists files
       files = [files].flatten
       rtn = true
