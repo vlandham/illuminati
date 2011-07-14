@@ -16,13 +16,13 @@ h2. Automated Illumina Pipeline
                                                      ,-'   ,` . . ',   `-,
                                                   ,-'                     `-,
 </pre>
-h3. About
+h2. About
 
 Illuminati is a set of tools geared towards automating portions of Illumina's secondary analysis pipeline. This application is custom tailored for a specific research institution and not architectured for general use. This may change in the future, and others dealing with Illumina software could still find it interesting.
 
 Note: we will refer to this pipeline as the 'primary' analysis pipeline, even though Illumina documentation refers to it as the 'secondary' analysis pipeline.
 
-h3. What it does
+h2. What it does
 
 General overview of the execution of the analysis pipeline this tool performs:
 
@@ -38,7 +38,7 @@ General overview of the execution of the analysis pipeline this tool performs:
 * Distribute data to project directories
 * Distribute stats and quality control analysis to qcdata directory
 
-h3. Requirements
+h2. Requirements
 
 * *CASAVA 1.8.0* - this tool is primarily a wrapper around the CASAVA pipeline software help automate it. This tool is designed to deal specifically with CASAVA 1.8, and would fail completely with an older version. CASAVA binaries should be located at @CASAVA_PATH@ (see @lib/illuminati/constants.rb@).
 * *fastqc* - we need fastqc available from the command line. Tested with fastqc version *0.9.2*.
@@ -46,7 +46,7 @@ h3. Requirements
 * *fastqc.pl* - another external perl script. This one automates the running of fastqc and a bit of post processing to make convenient, easy to read, centralized output. Future work includes rewriting this script in ruby for fun and including it in Illuminati.
 * *Custom Directory Structure* - Take a look at @lib/illuminati/constants.rb@ to get a feel for the expected directory structure. Modifying this file as well as @assests/config.txt.erb@ should allow for your own directory structure, but no promises. Future work includes moving these paths to a configuration file.
 
-h3. Using Illuminati
+h2. Using Illuminati
 
 To use Illuminati, you need a few things in place:
 * Flowcell data is in LIMS system and data provided by @ngsquery.pl@ is correct.
@@ -94,7 +94,7 @@ $ ./639AXXPY.sh
 
 This will actually create the @config.txt@ and @SampleSheet.csv@ files with the output as described in the admin script, then startup CASAVA's BCL Converter.
 
-h3. What Illuminati Does Next
+h2. What Illuminati Does Next
 
 Ok, so the config files CASAVA needs are automatically generated and the BCL converter starts up, but what else does Illuminati do?
 
@@ -136,7 +136,7 @@ A log file is also created for each flowcell in @/qcdata/log@. This will be used
 
 CASAVA's make output for the bcl conversion and align steps are captured in their own make.out files.
 
-h3. SampleMultiplex.csv
+h2. SampleMultiplex.csv
 
 The @SampleMultiplex.csv@ format is geared to provide Illuminati with the minimum amount of info that it can't get from LIMS, and nothing else. As such, it just contains lane, sample name, Illumina barcodes, and custom barcodes.
 
@@ -188,7 +188,7 @@ Lane,Sample Name,Illumina Index,Custom Barcode Sequence
 
 If a @SampleMultiplex.csv@ has Illumina indexes and custom barcodes for the same lane, then it is probably a mistake (I hope they aren't trying to multiplex custom barcoded samples...).
 
-h3. CASAVA 1.8 Directory Structure
+h2. CASAVA 1.8 Directory Structure
 
 CASAVA 1.8 has a pretty different structure for where it puts data now. Plus, the @post_runner.rb@ script creates some custom directories to do its job. Here's an overview of the directories relevant to the primary analysis pipeline:
 
@@ -218,7 +218,7 @@ Instead, there are two separate directories right off the flowcell's base direct
 
 @Aligned@ as you might guess contains the export.txt.gz files. Illuminati again adds the @all@ directory to store files using the naming convention we want to use.
 
-h3. Testing Illuminati
+h2. Testing Illuminati
 
 Some effort has been put in to writing tests to ensure components of Illuminati are functional and don't break when new features are added. These tests are currently incomplete, but it is a decent start. If you are on the particular machine this software was meant to be run on, you can simply run autotest to check all tests:
 
