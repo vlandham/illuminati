@@ -4,6 +4,7 @@ $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'illuminati'
 
+# Illuminati executables, so they don't need to be modifiable.
 BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
 ALIGN_SCRIPT = File.join(BASE_BIN_DIR, "align_runner.rb")
 CONFIG_SCRIPT = File.join(BASE_BIN_DIR, "config_maker.rb")
@@ -64,35 +65,35 @@ module Illuminati
       command = command + " config.txt SampleSheet.csv"
       script.write command
 
-        results.split("\n").each {|line| script.write "# #{line}"}
+      results.split("\n").each {|line| script.write "# #{line}"}
       script.write ""
 
       command = "cp SampleSheet.csv #{flowcell.base_calls_dir}"
       script.write command
 
-        command = "cd #{flowcell.base_calls_dir}"
+      command = "cd #{flowcell.base_calls_dir}"
       script.write command
 
-        command = "#{EMAILER_SCRIPT} \"starting #{flowcell_id}\""
+      command = "#{EMAILER_SCRIPT} \"starting #{flowcell_id}\""
       script.write command
-        script.write ""
+      script.write ""
 
       command = "#{LOGGER_SCRIPT} #{flowcell_id} \"starting #{flowcell_id}\""
       script.write command
-        script.write ""
+      script.write ""
 
       command = "#{CASAVA_PATH}/configureBclToFastq.pl --mismatches 1 --input-dir #{flowcell.base_calls_dir} --output-dir #{flowcell.unaligned_dir}  --flowcell-id #{flowcell.flowcell_id}"
       script.write command
-        script.write ""
+      script.write ""
 
       command = "cd #{flowcell.unaligned_dir}"
       script.write command
-        script.write ""
+      script.write ""
 
       align_command = "#{ALIGN_SCRIPT} #{flowcell.flowcell_id} > run_align.out 2>&1"
       command = "nohup make -j 4 POST_RUN_COMMAND=\"#{align_command}\" > make.unaligned.out 2>&1 &"
       script.write command
-        script.write ""
+      script.write ""
 
       script.write "# after complete, run this command and paste results to wiki page"
       script.write "# fc_info #{flowcell_id}"
