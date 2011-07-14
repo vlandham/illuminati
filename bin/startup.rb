@@ -7,9 +7,10 @@ require 'illuminati'
 BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
 ALIGN_SCRIPT = File.join(BASE_BIN_DIR, "align_runner.rb")
 CONFIG_SCRIPT = File.join(BASE_BIN_DIR, "config_maker.rb")
+LOGGER_SCRIPT = File.join(BASE_BIN_DIR, "logger.rb")
+EMAILER_SCRIPT = File.join(BASE_BIN_DIR, "emailer.rb")
 
 module Illuminati
-
   class ScriptWritter
     def initialize filename
       @filename = filename
@@ -72,11 +73,11 @@ module Illuminati
         command = "cd #{flowcell.base_calls_dir}"
       script.write command
 
-        command = "#{File.join(SCRIPT_PATH, "emailer.rb")} \"starting #{flowcell_id}\""
+        command = "#{EMAILER_SCRIPT} \"starting #{flowcell_id}\""
       script.write command
         script.write ""
 
-      command = "#{File.join(SCRIPT_PATH, "logger.rb")} #{flowcell_id} \"starting #{flowcell_id}\""
+      command = "#{LOGGER_SCRIPT} #{flowcell_id} \"starting #{flowcell_id}\""
       script.write command
         script.write ""
 
