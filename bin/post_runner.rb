@@ -344,6 +344,7 @@ module Illuminati
     # Hash includes sample_name, barcode, lane,
     # basename, and full path
     def get_file_data files, suffix_pattern = "\.fastq\.gz"
+      files = [files].flatten
 
       $NAME_PATTERN = /(.*)_([ATCG]+|NoIndex|Undetermined)_L(\d{3})_R(\d)_(\d{3})#{suffix_pattern}/
       # 1_ACTTGA_ACTTGA_L001_R1_002.fastq.gz

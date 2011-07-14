@@ -49,11 +49,23 @@ describe Illuminati::PostRunner do
     end
   end
 
-  describe "get_data" do
+  describe "get_file_data" do
     before(:each) do
-      @files = Array[YAML.load(data("illumina_fastq_files.yaml"))]
+      @file_data = YAML.load(data("illumina_fastq_files.yaml"))
+    end
 
-
+    it "should match file names" do
+      @file_data.each do |data|
+        results = @runner.get_file_data(data["file"])
+        results.size.should == 1
+        result = results[0]
+        result[:name].should == data["file"]
+        result[:path].should == data["file"]
+        result[:barcode].should == data["barcode"]
+        result[:lane].should == data["lane"]
+        result[:read].should == data["read"]
+        result[:sample_name].should == data["name"]
+      end
     end
   end
 end
