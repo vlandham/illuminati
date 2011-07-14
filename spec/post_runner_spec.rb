@@ -46,25 +46,44 @@ describe Illuminati::PostRunner do
 
   describe "group_files" do
     before(:each) do
+      @all_data = YAML.load(data("illumina_fastq_files.yaml"))
+      @file_data = @all_data[:file_data]
+      @group_data = @all_data[:group_data]
+      @starting_path = @all_data[:starting_path]
+      @output_path = @all_data[:ending_path]
+    end
+
+    it "should group files properly" do
+      results = @runner.group_files(@file_data, @starting_path, @output_path)
+      results.size.should == 5
+      @group_data.size.should == results.size
+      results.each_with_index do |result,index|
+        [:group_name, :path, :filter_path, :sample_name, :lane].each do |key|
+          result[key].should == @group_data[index][key]
+        end
+        result[:files].size.should == @group_data[index][:files_size]
+      end
     end
   end
 
   describe "get_file_data" do
     before(:each) do
-      @file_data = YAML.load(data("illumina_fastq_files.yaml"))
+      @file_data = YAML.load(data("illumina_fastq_files.yaml"))[:file_data]
     end
 
     it "should match file names" do
       @file_data.each do |data|
-        results = @runner.get_file_data(data["file"])
+        results = @runner.get_file_data(data[:path])
         results.size.should == 1
         result = results[0]
-        result[:name].should == data["file"]
-        result[:path].should == data["file"]
-        result[:barcode].should == data["barcode"]
-        result[:lane].should == data["lane"]
-        result[:read].should == data["read"]
-        result[:sample_name].should == data["name"]
+        result[:name].should == data[:name]
+        result[:name].include?("/").should == false
+        result[:name].include?("fastq.gz").should == true
+        result[:path].should == data[:path]
+        result[:barcode].should == data[:barcode]
+        result[:lane].should == data[:lane]
+        result[:read].should == data[:read]
+        result[:sample_name].should == data[:sample_name]
       end
     end
   end

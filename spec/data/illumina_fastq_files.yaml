@@ -1,37 +1,105 @@
 ---
-- 
-  file: 1_NoIndex_L001_R1_001.fastq.gz
-  barcode: NoIndex
-  lane: 1
-  read: 1
-  set: 1
-  name: "1"
-- 
-  file: 1_NoIndex_L001_R2_115.fastq.gz
-  barcode: NoIndex
-  lane: 1
-  read: 2
-  set: 115
-  name: "1"
-- 
-  file: 6_TGACCA_TGACCA_L006_R1_002.fastq.gz
-  barcode: TGACCA
-  lane: 6
-  read: 1
-  set: 2
-  name: "6_TGACCA"
-- 
-  file: 7_TTAGGC_TTAGGC_L007_R1_002.fastq.gz
-  barcode: TTAGGC
-  lane: 7
-  read: 1
-  set: 2
-  name: "7_TTAGGC"
-- 
-  file: lane7_Undetermined_L007_R1_001.fastq.gz
-  barcode: Undetermined
-  lane: 7
-  read: 1
-  set: 1
-  name: "lane7"
+:file_data:
+  - 
+    :path: /solexa/flowcell_id_name/1_NoIndex_L001_R1_001.fastq.gz
+    :name: 1_NoIndex_L001_R1_001.fastq.gz
+    :barcode: NoIndex
+    :lane: 1
+    :read: 1
+    :set: 1
+    :sample_name: "1"
+  - 
+    :path: /solexa/flowcell_id_name/1_NoIndex_L001_R2_115.fastq.gz
+    :name: 1_NoIndex_L001_R2_115.fastq.gz
+    :barcode: NoIndex
+    :lane: 1
+    :read: 2
+    :set: 115
+    :sample_name: "1"
+  - 
+    :path: /solexa/flowcell_id_name/6_TGACCA_TGACCA_L006_R1_001.fastq.gz
+    :name: 6_TGACCA_TGACCA_L006_R1_001.fastq.gz
+    :barcode: TGACCA
+    :lane: 6
+    :read: 1
+    :set: 1
+    :sample_name: "6_TGACCA"
+  - 
+    :path: /solexa/flowcell_id_name/6_TGACCA_TGACCA_L006_R1_002.fastq.gz
+    :name: 6_TGACCA_TGACCA_L006_R1_002.fastq.gz
+    :barcode: TGACCA
+    :lane: 6
+    :read: 1
+    :set: 2
+    :sample_name: "6_TGACCA"
+  - 
+    :path: /solexa/flowcell_id_name/7_TTAGGC_TTAGGC_L007_R1_001.fastq.gz
+    :name: 7_TTAGGC_TTAGGC_L007_R1_001.fastq.gz
+    :barcode: TTAGGC
+    :lane: 7
+    :read: 1
+    :set: 1 
+    :sample_name: "7_TTAGGC"
+  - 
+    :path: /solexa/flowcell_id_name/7_TTAGGC_TTAGGC_L007_R1_002.fastq.gz
+    :name: 7_TTAGGC_TTAGGC_L007_R1_002.fastq.gz
+    :barcode: TTAGGC
+    :lane: 7
+    :read: 1
+    :set: 2
+    :sample_name: "7_TTAGGC"
+  - 
+    :path: /solexa/flowcell_id_name/lane7_Undetermined_L007_R1_001.fastq.gz
+    :name: lane7_Undetermined_L007_R1_001.fastq.gz
+    :barcode: Undetermined
+    :lane: 7
+    :read: 1
+    :set: 1
+    :sample_name: "lane7"
+  - 
+    :path: /solexa/flowcell_id_name/sample_TATATA_L008_R2_001.fastq.gz
+    :name: sample_TATATA_L008_R2_001.fastq.gz
+    :barcode: TATATA
+    :lane: 8
+    :read: 2
+    :set: 1
+    :sample_name: "sample"
+:starting_path: "./all"
+:ending_path: "./filter"
+:group_data:
+  -
+    :group_name: "s_1_1_NoIndex.fastq.gz"
+    :path: "./all/s_1_1_NoIndex.fastq.gz"
+    :filter_path: "./filter/s_1_1_NoIndex.fastq.gz"
+    :sample_name: "1"
+    :lane: 1
+    :files_size: 1
+  -
+    :group_name: "s_1_2_NoIndex.fastq.gz"
+    :path: "./all/s_1_2_NoIndex.fastq.gz"
+    :filter_path: "./filter/s_1_2_NoIndex.fastq.gz"
+    :sample_name: "1"
+    :lane: 1
+    :files_size: 1
+  -
+    :group_name: "s_6_1_TGACCA.fastq.gz"
+    :path: "./all/s_6_1_TGACCA.fastq.gz"
+    :filter_path: "./filter/s_6_1_TGACCA.fastq.gz"
+    :sample_name: "6_TGACCA"
+    :lane: 6
+    :files_size: 2
+  -
+    :group_name: "s_7_1_TTAGGC.fastq.gz"
+    :path: "./all/s_7_1_TTAGGC.fastq.gz"
+    :filter_path: "./filter/s_7_1_TTAGGC.fastq.gz"
+    :sample_name: "7_TTAGGC"
+    :lane: 7
+    :files_size: 2
+  -
+    :group_name: "s_8_2_TATATA.fastq.gz"
+    :path: "./all/s_8_2_TATATA.fastq.gz"
+    :filter_path: "./filter/s_8_2_TATATA.fastq.gz"
+    :sample_name: "sample"
+    :lane: 8
+    :files_size: 1
 
