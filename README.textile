@@ -3,18 +3,18 @@ h1. Illuminati
 h2. Automated Illumina Pipeline
 
 <pre>
-                     
-                                                               `-.`'.-'
-                                                            `-.        .-'.
-                                                         `-.    -./\.-    .-'
-                                                             -.  /_|\  .-
-                                                         `-.   `/____\'   .-'.
-                                                      `-.    -./.-""-.\.-      '
-                                                         `-.  /< (()) >\  .-'
-                                                       -   .`/__`-..-'__\'   .-
-                                                     ,...`-./___|____|___\.-'.,.
-                                                        ,-'   ,` . . ',   `-,
-                                                     ,-'                     `-,
+                  
+                                                            `-.`'.-'
+                                                         `-.        .-'.
+                                                      `-.    -./\.-    .-'
+                                                          -.  /_|\  .-
+                                                      `-.   `/____\'   .-'.
+                                                   `-.    -./.-""-.\.-      '
+                                                      `-.  /< (()) >\  .-'
+                                                    -   .`/__`-..-'__\'   .-
+                                                  ,...`-./___|____|___\.-'.,.
+                                                     ,-'   ,` . . ',   `-,
+                                                  ,-'                     `-,
 </pre>
 h3. About
 
@@ -187,3 +187,33 @@ Lane,Sample Name,Illumina Index,Custom Barcode Sequence
 </pre>
 
 If a @SampleMultiplex.csv@ has Illumina indexes and custom barcodes for the same lane, then it is probably a mistake (I hope they aren't trying to multiplex custom barcoded samples...).
+
+h3. CASAVA 1.8 Directory Structure
+
+CASAVA 1.8 has a pretty different structure for where it puts data now. Plus, the @post_runner.rb@ script creates some custom directories to do its job. Here's an overview of the directories relevant to the primary analysis pipeline:
+
+<pre>
+_ FLOWCELL_BASE_DIR
+|
+|___ Data
+|    |
+|    |___ Intensities
+|
+|___ Unaligned
+|    |
+|    |___ all
+|    |
+|    |___ filter
+|
+|___ Aligned
+     |
+     |___ all
+</pre>
+
+The *big* change is that you don't go digging in @Data/Intensities/GERALD_*@ directories anymore for your sequence / alignment files.
+
+Instead, there are two separate directories right off the flowcell's base directory called @Unaligned@ and @Aligned@ that are now used to store that data (technically they are user configurable, but these are the defaults, and thats what we'll use).
+
+@Unaligned@ contains your fastq.gz files. Illuminati adds two additional sub-directories - @all@ and @filter@. @all@ contains the concatenated, unfiltered fastq.gz files with the correct naming structure. @filter@ contains the same files, but with the reads that didn't pass filter removed. 
+
+@Aligned@ as you might guess contains the export.txt.gz files. Illuminati again adds the @all@ directory to store files using the naming convention we want to use.
