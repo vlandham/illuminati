@@ -102,6 +102,7 @@ module Illuminati
       distributions = DistributionData.distributions_for @flowcell.id
 
       run_unaligned distributions
+      run_unaligned_qc distributions
 
       run_aligned distributions
 
@@ -119,7 +120,6 @@ module Illuminati
 
       status "distributing unaligned fastq.gz files"
       distribute_files fastq_groups, distributions
-      run_unaligned_qc distributions
     end
 
     def run_aligned distributions
