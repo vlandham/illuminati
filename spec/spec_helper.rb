@@ -6,6 +6,7 @@ SimpleCov.start do
   add_group 'Specs', 'spec'
 end
 
+$:.unshift(File.join(File.dirname(__FILE__), "..", "bin"))
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'illuminati'
