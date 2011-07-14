@@ -217,3 +217,14 @@ Instead, there are two separate directories right off the flowcell's base direct
 @Unaligned@ contains your fastq.gz files. Illuminati adds two additional sub-directories - @all@ and @filter@. @all@ contains the concatenated, unfiltered fastq.gz files with the correct naming structure. @filter@ contains the same files, but with the reads that didn't pass filter removed. 
 
 @Aligned@ as you might guess contains the export.txt.gz files. Illuminati again adds the @all@ directory to store files using the naming convention we want to use.
+
+h3. Testing Illuminati
+
+Some effort has been put in to writing tests to ensure components of Illuminati are functional and don't break when new features are added. These tests are currently incomplete, but it is a decent start. If you are on the particular machine this software was meant to be run on, you can simply run autotest to check all tests:
+
+<pre>
+$ cd /qcdata/illuminati
+$ autotest
+</pre>
+
+Everything should pass, or something is broken. If you are on another machine, some of the tests can be run using rspec. Some tests will fail due to requirements of file structure and database access. Future work includes making it configurable enough to test on other machines.
