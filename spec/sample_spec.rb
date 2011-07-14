@@ -69,6 +69,7 @@ describe Illuminati::Sample do
   it "should convert to hash" do
     hash = @sample.add_lims_data(@lims_data).to_h
     hash[:name].should == @lims_data[:name]
+    hash[:lane].should == @lims_data[:lane]
   end
 
   it "should handle lane based equality" do
@@ -78,7 +79,7 @@ describe Illuminati::Sample do
     @sample.lane_equal(equal_sample).should == true
     equal_sample.barcode = "ACNNNN"
     @sample.lane_equal(equal_sample).should == true
-    equal_sample.lane = 9
+    equal_sample.lane = "9"
     @sample.lane_equal(equal_sample).should == true
   end
 end
