@@ -3,6 +3,7 @@ require 'illuminati/constants'
 module Illuminati
   class FlowcellData
     attr_reader :flowcell_id
+    alias :id :flowcell_id
 
     def initialize flowcell_id, testing = false
       @flowcell_id = flowcell_id
