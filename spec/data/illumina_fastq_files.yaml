@@ -1,2 +1,37 @@
 ---
 - 
+  file: 1_NoIndex_L001_R1_001.fastq.gz
+  barcode: NoIndex
+  lane: 1
+  read: 1
+  set: 1
+  name: "1"
+- 
+  file: 1_NoIndex_L001_R2_115.fastq.gz
+  barcode: NoIndex
+  lane: 1
+  read: 2
+  set: 115
+  name: "1"
+- 
+  file: 6_TGACCA_TGACCA_L006_R1_002.fastq.gz
+  barcode: TGACCA
+  lane: 6
+  read: 1
+  set: 2
+  name: "6_TGACCA"
+- 
+  file: 7_TTAGGC_TTAGGC_L007_R1_002.fastq.gz
+  barcode: TTAGGC
+  lane: 7
+  read: 1
+  set: 2
+  name: "7_TTAGGC"
+- 
+  file: lane7_Undetermined_L007_R1_001.fastq.gz
+  barcode: Undetermined
+  lane: 7
+  read: 1
+  set: 1
+  name: "lane7"
+
