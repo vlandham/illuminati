@@ -4,6 +4,8 @@ $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'illuminati'
 
+TEST = false
+
 module Illuminati
   class DistributionData
     def self.query_ngslims flowcell_id
@@ -32,12 +34,12 @@ end
 
 module Illuminati
   class PostRunner
-    attr_reader :flowcell_id
+    attr_reader :flowcell
     attr_accessor :test
 
-    def initialize fcid
-      @flowcell_id = fcid
-      @test = false
+    def initialize flowcell, test = false
+      @flowcell = flowcell
+      @test = test
       @post_run_script = nil
     end
 
@@ -55,7 +57,7 @@ module Illuminati
 
     def status message
       log "# #{message}"
-      SolexaLogger.log(@flowcell_id, message) unless @test
+      SolexaLogger.log(@flowcell.id, message) unless @test
     end
 
     def title message
@@ -77,13 +79,11 @@ module Illuminati
     end
 
     def start_flowcell
-      Emailer.email "starting post run for #{@flowcell_id}" unless @test
+      Emailer.email "starting post run for #{@flowcell.id}" unless @test
       status "postrun start"
-      flowcell = FlowcellData.new @flowcell_id, @test
 
-      @post_run_script_filename = File.join(flowcell.base_dir, "postrun_#{flowcell.flowcell_id}.sh")
+      @post_run_script_filename = File.join(@flowcell.base_dir, "postrun_#{@flowcell.id}.sh")
       @post_run_script = File.new(@post_run_script_filename, 'w')
-      flowcell
     end
 
     def stop_flowcell flowcell
@@ -95,73 +95,72 @@ module Illuminati
     end
 
     def run
-      flowcell = start_flowcell
-      distributions = DistributionData.distributions_for @flowcell_id
+      distributions = DistributionData.distributions_for @flowcell.id
 
-      run_unaligned flowcell, distributions
+      run_unaligned distributions
 
-      run_aligned flowcell, distributions
+      run_aligned distributions
 
-      distribute_to_qcdata flowcell
+      distribute_to_qcdata @flowcell
       stop_flowcell flowcell
     end
 
-    def run_unaligned flowcell, distributions
+    def run_unaligned distributions
       status "processing unaligned"
-      fastq_groups = group_fastq_files(flowcell.unaligned_project_dir,
-                                       flowcell.fastq_combine_dir,
-                                       flowcell.fastq_filter_dir)
+      fastq_groups = group_fastq_files(@flowcell.unaligned_project_dir,
+                                       @flowcell.fastq_combine_dir,
+                                       @flowcell.fastq_filter_dir)
       cat_files fastq_groups
-      filter_fastq_files fastq_groups, flowcell.fastq_filter_dir
+      filter_fastq_files fastq_groups, @flowcell.fastq_filter_dir
 
       status "distributing unaligned fastq.gz files"
       distribute_files fastq_groups, distributions
-      run_unaligned_qc flowcell, distributions
+      run_unaligned_qc distributions
     end
 
-    def run_aligned flowcell, distributions
+    def run_aligned distributions
       status "processing export files"
-      export_groups = group_export_files(flowcell.aligned_project_dir,
-                                         flowcell.eland_combine_dir,
-                                         flowcell.eland_combine_dir)
+      export_groups = group_export_files(@flowcell.aligned_project_dir,
+                                         @flowcell.eland_combine_dir,
+                                         @flowcell.eland_combine_dir)
       cat_files export_groups
 
       status "distributing export files"
       distribute_files export_groups, distributions
       status "distributing aligned stats files"
-      distribute_aligned_stats_files distributions, flowcell
+      distribute_aligned_stats_files distributions
     end
 
-    def run_unaligned_qc flowcell, distributions
+    def run_unaligned_qc distributions
       status "running fastqc"
-      run_fastqc flowcell.fastq_filter_dir
+      run_fastqc @flowcell.fastq_filter_dir
 
-      ivc_file = File.join(flowcell.unaligned_stats_dir, "IVC.htm")
+      ivc_file = File.join(@flowcell.unaligned_stats_dir, "IVC.htm")
       convert_to_pdf ivc_file
 
       status "distributing unaligned stats directory"
-      distribute_to_unique distributions, flowcell.unaligned_stats_dir
+      distribute_to_unique distributions, @flowcell.unaligned_stats_dir
       status "distributing fastqc directory"
-      distribute_to_unique distributions, flowcell.fastqc_dir
+      distribute_to_unique distributions, @flowcell.fastqc_dir
     end
 
-    def distribute_to_qcdata flowcell
+    def distribute_to_qcdata
       status "distributing to qcdata"
-      execute "mkdir -p #{flowcell.qc_dir}"
-      distribution = {:path => flowcell.qc_dir}
+      execute "mkdir -p #{@flowcell.qc_dir}"
+      distribution = {:path => @flowcell.qc_dir}
       qc_files = ["InterOp", "RunInfo.xml", "Events.log", "Data/reports"]
-      qc_paths = qc_files.collect {|qc_file| File.join(flowcell.base_dir, qc_file)}
+      qc_paths = qc_files.collect {|qc_file| File.join(@flowcell.base_dir, qc_file)}
       distribute_to_unique distribution, qc_paths
-      distribute_to_unique distribution, flowcell.unaligned_stats_dir
-      distribute_aligned_stats_files distribution, flowcell
-      distribute_to_unique distribution, flowcell.fastqc_dir
+      distribute_to_unique distribution, @flowcell.unaligned_stats_dir
+      distribute_aligned_stats_files distribution
+      distribute_to_unique distribution, @flowcell.fastqc_dir
     end
 
-    def distribute_aligned_stats_files distribution, flowcell
+    def distribute_aligned_stats_files distribution
       base_stats_files = ["Flowcell_Summary_*"]
       stats_files = ["Barcode_Lane_Summary.htm", "Sample_Summary.htm"]
-      stats_paths = find_files_in(base_stats_files, flowcell.aligned_dir)
-      stats_paths.concat(find_files_in(stats_files, flowcell.aligned_stats_dirs))
+      stats_paths = find_files_in(base_stats_files, @flowcell.aligned_dir)
+      stats_paths.concat(find_files_in(stats_files, @flowcell.aligned_stats_dirs))
 
       distribute_to_unique distribution, stats_paths
 
@@ -368,9 +367,9 @@ end
 
 if __FILE__ == $0
   flowcell_id = ARGV[0]
-  test = ARGV[1]
   if flowcell_id
-    runner = Illuminati::PostRunner.new flowcell_id
+    flowcell = FlowcellData.new flowcell_id, TEST
+    runner = Illuminati::PostRunner.new flowcell, TEST
     runner.run
   else
     puts "ERROR: call with flowcell id"
