@@ -1,13 +1,16 @@
-#! /usr/bin/env ruby
 require 'json'
+require 'fileutils'
+
+require 'illuminati/constants'
 
 module Illuminati
   class SolexaLogger
-
-    LOG_DIR = File.expand_path(File.join("/qcdata", "log"))
-
     def self.log flowcell_id, status, test = false
-      log_filename = File.join(LOG_DIR, "#{flowcell_id}.log")
+      if !test and !File.exists?(LOGS_PATH)
+        puts "creating dir: #{LOGS_PATH}"
+        FileUtils.mkdir_p LOGS_PATH
+      end
+      log_filename = File.join(LOGS_PATH, "#{flowcell_id}.log")
       if test
         log_filename = log_filename + ".test"
       end
@@ -22,12 +25,3 @@ module Illuminati
   end
 end
 
-if __FILE__ == $0
-  flowcell_id = ARGV[0]
-  message = ARGV[1]
-  if flowcell_id
-    Illuminati::SolexaLogger.log flowcell_id, message
-  else
-    puts "ERROR: call with flowcell_id and message"
-  end
-end
