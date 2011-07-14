@@ -40,6 +40,10 @@ RSpec.configure do |config|
     File.join(File.dirname(__FILE__), 'sandbox')
   end
 
+  def data(name)
+    File.read(File.join(File.dirname(__FILE__), 'data', name))
+  end
+
   alias :silence :capture
 end
 

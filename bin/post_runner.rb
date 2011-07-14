@@ -4,6 +4,9 @@ $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'illuminati'
 
+BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
+FILTER_SCRIPT = File.join(BASE_BIN_DIR, "fastq_filter.rb")
+
 TEST = false
 
 module Illuminati
@@ -86,15 +89,16 @@ module Illuminati
       @post_run_script = File.new(@post_run_script_filename, 'w')
     end
 
-    def stop_flowcell flowcell
+    def stop_flowcell
       @post_run_script.close if @post_run_script
-      qc_postrun_filename = File.join(flowcell.qc_dir, File.basename(@post_run_script_filename))
+      qc_postrun_filename = File.join(@flowcell.qc_dir, File.basename(@post_run_script_filename))
       execute "cp #{@post_run_script_filename} #{qc_postrun_filename}"
-      Emailer.email "post run complete for #{@flowcell_id}" unless @test
+      Emailer.email "post run complete for #{@flowcell.id}" unless @test
       status "postrun done"
     end
 
     def run
+      start_flowcell
       distributions = DistributionData.distributions_for @flowcell.id
 
       run_unaligned distributions
@@ -102,7 +106,7 @@ module Illuminati
       run_aligned distributions
 
       distribute_to_qcdata @flowcell
-      stop_flowcell flowcell
+      stop_flowcell
     end
 
     def run_unaligned distributions
@@ -163,7 +167,6 @@ module Illuminati
       stats_paths.concat(find_files_in(stats_files, @flowcell.aligned_stats_dirs))
 
       distribute_to_unique distribution, stats_paths
-
     end
 
     def find_files_in file_matches, root_paths
@@ -236,9 +239,8 @@ module Illuminati
       log "# Creating path: #{output_path}"
       execute "mkdir -p #{output_path}"
 
-      filterer = File.join(SCRIPT_PATH, "fastq_filter.rb")
       fastq_groups.each do |group|
-        command = "zcat #{group[:path]} | #{filterer} | gzip -c > #{group[:filter_path]}"
+        command = "zcat #{group[:path]} | #{FILTER_SCRIPT} | gzip -c > #{group[:filter_path]}"
         execute command
       end
     end

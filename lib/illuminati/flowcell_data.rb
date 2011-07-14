@@ -1,5 +1,6 @@
 
 require 'illuminati/constants'
+
 module Illuminati
   class FlowcellData
     attr_reader :flowcell_id
