@@ -47,15 +47,21 @@ module Illuminati
                        "sampleproject"].join(",")
       sample_sheet += "\n"
 
+      #lanes_added used to exclude lanes with custom barcode
+      #but no illumina barcode
+      lanes_added = []
       @flowcell.each_sample_with_lane do |sample, lane|
         data = []
-        data << @flowcell.id << lane.number << sample.id
-        data << sample.genome << sample.illumina_barcode
-        data << sample.description << sample.control
-        data << "see lims" << "see lims"
-        data << @flowcell.id
-        sample_sheet += data.join(",")
-        sample_sheet += "\n"
+        if !lanes_added.include?(sample.lane) or (sample.illumina_barcode and !sample.illumina_barcode.empty?)
+          data << @flowcell.id << sample.lane << sample.id
+          data << sample.genome << sample.illumina_barcode
+          data << sample.description << sample.control
+          data << "see lims" << "see lims"
+          data << @flowcell.id
+          lanes_added << sample.lane
+          sample_sheet += data.join(",")
+          sample_sheet += "\n"
+        end
       end
       sample_sheet
     end
