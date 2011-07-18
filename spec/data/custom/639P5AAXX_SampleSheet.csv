@@ -1,0 +1,9 @@
+fcid,lane,sampleid,sampleref,index,description,control,recipe,operator,sampleproject
+639P5AAXX,1,1,sacCer2,,lane 1 name dot1_IP,N,see lims,see lims,639P5AAXX
+639P5AAXX,2,2,sacCer2,,lane 2 name dot1_IP,N,see lims,see lims,639P5AAXX
+639P5AAXX,3,3,sacCer2,,lane 3 name K79R_wce,N,see lims,see lims,639P5AAXX
+639P5AAXX,4,4,sacCer2,,lane 4 name K79R_wce,N,see lims,see lims,639P5AAXX
+639P5AAXX,5,5,sacCer2,,lane 5 name T80A_IP,N,see lims,see lims,639P5AAXX
+639P5AAXX,6,6,sacCer2,,lane 6 name T80A_IP,N,see lims,see lims,639P5AAXX
+639P5AAXX,7,7,mm9,,lane 7 name 9_5dpc_HoxB1_IP,N,see lims,see lims,639P5AAXX
+639P5AAXX,8,8,phiX,,lane 8 name PhiX,Y,see lims,see lims,639P5AAXX
