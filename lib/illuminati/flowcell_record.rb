@@ -129,6 +129,8 @@ module Illuminati
     def barcode_of multiplex_data
       if multiplex_data[:illumina_barcode] and multiplex_data[:custom_barcode]
         puts "ERROR: multiplex data has both illumina and custom barcodes"
+        puts "       illumina barcode:#{multiplex_data[:illumina_barcode]}."
+        puts "       custom barcode  :#{multiplex_data[:custom_barcode]}."
         raise "too many barcodes"
       elsif multiplex_data[:illumina_barcode]
         return :illumina, multiplex_data[:illumina_barcode]
