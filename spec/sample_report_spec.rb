@@ -61,6 +61,7 @@ describe Illuminati::SampleReport do
     File.exists?(sample_summary_filename).should == true
     doc = @report.parse_report(sample_summary_filename)
     table_data = @report.parse_tables(doc)
+    table_data.size.should == 6
     puts table_data.inspect
 
   end

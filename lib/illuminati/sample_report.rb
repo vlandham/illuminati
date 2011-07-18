@@ -161,11 +161,20 @@ module Illuminati
       next_has_headers = false
       tables.each do |table|
         if next_has_headers
-          table_data = apply_headers(headers, table)
-          data << table_data
-          next_has_headers = false
+          if !table.contains?('th')
+            table_data = apply_headers(headers, table)
+            data << table_data
+          else
+            puts 'error: next table has headers'
+          end
+            headers = []
+            next_has_headers = false
         end
-        headers = extract_headers(table)
+        if table.contains?('th')
+          headers = extract_headers(table)
+        else
+          headers = []
+        end
         if !headers.empty? and table.contains?('td')
           # assume that the headers are meant for the
           # current table
@@ -200,7 +209,8 @@ module Illuminati
     end
 
     def extract_headers table
-      table.content_for_all('th')
+      trs = table.find('tr')
+      trs[-1].content_for_all('th')
     end
 
     def parse_html string
