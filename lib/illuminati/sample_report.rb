@@ -166,7 +166,13 @@ module Illuminati
           next_has_headers = false
         end
         headers = extract_headers(table)
-        if !headers.empty?
+        if !headers.empty? and table.contains?('td')
+          # assume that the headers are meant for the
+          # current table
+          table_data = apply_headers(headers, table)
+          data << table_data
+        elsif !headers.empty?
+          # the headers are meant for the next table
           next_has_headers = true
         end
       end
