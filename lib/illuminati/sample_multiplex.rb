@@ -24,7 +24,7 @@ module Illuminati
           line_data = line.chomp.split(",").collect {|d| d.strip}
           line_hash = {}
           header.each_with_index do |h,index|
-            line_hash[h] = line_data[index]
+            line_hash[h] = line_data[index] if (line_data[index] and !line_data[index].empty?)
           end
           line_hash = clean line_hash
           data << line_hash
