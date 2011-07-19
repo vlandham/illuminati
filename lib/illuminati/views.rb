@@ -68,4 +68,38 @@ module Illuminati
   end
 end
 
+module Illuminati
+  class SampleReportView
+    def initialize flowcell_record
+      @flowcell = flowcell_record
+    end
 
+    def write
+      sample_report = ["output", "lane", "sample name", "illumina index", "custom barcode", "read", "reference"].join(",")
+      sample_report += "\n"
+      @flowcell.each_sample_with_lane do |sample, lane|
+        outputs = output_for sample
+        outputs.each_with_index do |output, read|
+        data = []
+        data << output << sample.lane << sample.name << sample.illumina_barcode
+        data << sample.custom_barcode << read << sample.genome
+        sample_report += data.join(",")
+        sample_report += "\n"
+        end
+      end
+      sample_report
+    end
+
+    def output_for sample
+      barcode_text = case sample.barcode_type
+                     when :illumina
+                       sample.illumina_barcode
+                     when :custom
+                       sample.custom_barcode
+                     else
+                       "NoIndex"
+                     end
+      ["s_#{sample.lane}_1_#{barcode_text}.fastq.gz"]
+    end
+  end
+end

@@ -13,6 +13,7 @@ module Illuminati
 
     def initialize
       @barcode = ""
+      @barcode_type = :none
     end
 
     def add_lims_data lims_data
@@ -195,7 +196,6 @@ module Illuminati
       view = ConfigFileView.new(self)
       view.write
     end
-
 
     def to_yaml
       self.to_h.to_yaml
