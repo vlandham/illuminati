@@ -2,9 +2,9 @@ module Illuminati
   CASAVA_PATH = "/home/solexa/CASAVA_1.8.0/bin"
   EMAIL_LIST = ["jfv@stowers.org"]
   QC_PATH = "/qcdata"
-  SCRIPT_PATH = "/qcdata/SIMR_pipeline_scripts"
-  ADMIN_PATH = "/qcdata/Admin"
-  LOGS_PATH = "/qcdata/log"
+  SCRIPT_PATH = "/solexa/bin/scripts"
+  ADMIN_PATH = "/solexa/runs"
+  LOGS_PATH = "/solexa/runs/log"
   FLOWCELL_PATH_BASE = "/solexa"
   BASECALLS_PATH = File.join("Data", "Intensities", "BaseCalls") 
   FASTQ_COMBINE_PATH = "all"

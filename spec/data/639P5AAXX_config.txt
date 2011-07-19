@@ -2,7 +2,7 @@ EMAIL_LIST jfv@stowers.org
 EMAIL_SERVER localhost:25
 WEB_DIR_ROOT http://molbio/solexaRuns/
 NUM_LEADING_DIRS_TO_STRIP 1
-EXPT_DIR /qcdata/illuminati/spec/data/Unaligned
+EXPT_DIR /solexa/bin/illuminati/spec/data/Unaligned
 123456:ELAND_GENOME /qcdata/igenome/sacCer2
 123456:ANALYSIS eland_extended
 123456:ELAND_MAX_MATCHES 10
