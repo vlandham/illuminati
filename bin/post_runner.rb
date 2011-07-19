@@ -120,6 +120,10 @@ module Illuminati
 
       status "distributing unaligned fastq.gz files"
       distribute_files fastq_groups, distributions
+
+      status "custom barcode splitting"
+      custom_barcode_files = split_custom_barcodes fastq_groups
+      distribute_files(custom_barcode_files, distributions) unless custom_barcode_files.empty?
     end
 
     def run_aligned distributions
@@ -149,24 +153,51 @@ module Illuminati
     end
 
     def split_custom_barcodes groups
-      (1..8).each do |lane|
-        barcode_file_path = @flowcell.custom_barcode_path(lane)
+      custom_barcode_data = []
+      groups.each do |sample_data|
+        barcode_file_path = @flowcell.custom_barcode_path(sample_data[:lane])
         if File.exists?(barcode_file_path)
-          orginal_fastq_path = path_for_lane(lane, groups)
+          orginal_fastq_path = sample_data[:filter_path]
+          fastq_base_dir = File.dirname(orginal_fastq_path)
+          file_prefix = File.join(fastq_base_dir, "s_#{sample_data[:lane]}_#{sample_data[:read]}_")
+          file_suffix = ".fastq"
+
           command = "zcat #{orginal_fastq_path} |"
           command += " fastx_barcode_splitter.pl --bcfile #{barcode_file_path}"
-          command += " --bol --prefix \"s_\" --suffix \".fastq\""
-          puts command
+          command += " --bol --prefix \"#{file_prefix}\""
+          command += " --suffix \"#{file_suffix}\""
+          execute command
+
+          unmatched = Dir.glob("#{file_prefix}unmatched#{file_suffix}")
+          unmatched.each do |unmatched_filename|
+            undetermined_filename = "#{file_prefix}Undetermined#{file_suffix}"
+            execute "mv #{unmatched_filename} #{undetermined_filename}"
+          end
+
+          uncompressed_fastq_files = Dir.glob("#{file_prefix}*#{file_suffix}")
+          compressed_fastq_files = []
+          uncompressed_fastq_files.each do |uncompressed_fastq_file|
+            execute "gzip -f #{uncompressed_fastq_file}"
+            compressed_fastq_files << uncompressed_fastq_file + ".gz"
+          end
+
+          compressed_fastq_files.each do |barcode_file_path|
+            barcode_file_name = File.basename(barcode_file_path)
+            custom_barcode_hash = {:lane => sample_data[:lane], :read => sample_data[:read],
+                                   :filter_path => barcode_file_path, :group_name => barcode_file_name}
+            custom_barcode_data << custom_barcode_hash
+          end
         end
       end
+      custom_barcode_data
     end
 
-    def path_for_lane lane, groups
+    def sample_for_lane lane, groups
       lane_groups = groups.select {|g| g[:lane] == lane}
       if !lane_groups.size == 1
         puts "ERROR expected only one lane file, instead found #{lane_groups.size}"
       end
-      lane_groups[0][:filter_path]
+      lane_groups[0]
     end
 
     def distribute_to_qcdata
@@ -347,6 +378,7 @@ module Illuminati
                                :path => group_path,
                                :filter_path => group_filter_path,
                                :sample_name => data[:sample_name],
+                               :read => data[:read],
                                :lane => data[:lane],
                                :files => [data]
           }

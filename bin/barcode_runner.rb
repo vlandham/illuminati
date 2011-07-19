@@ -4,7 +4,7 @@ $:.unshift(File.dirname(__FILE__))
 
 require 'post_runner'
 
-BARCODE_TEST = true
+BARCODE_TEST = false
 
 module Illuminati
   class BarcodeRunner < PostRunner
@@ -19,8 +19,9 @@ module Illuminati
       fastq_groups = group_fastq_files(@flowcell.unaligned_project_dir,
                                        @flowcell.fastq_combine_dir,
                                        @flowcell.fastq_filter_dir)
-      split_custom_barcodes fastq_groups
+      custom_barcode_files = split_custom_barcodes fastq_groups
 
+      distribute_files custom_barcode_files, distributions
       stop_flowcell
     end
   end
