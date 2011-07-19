@@ -152,9 +152,10 @@ module Illuminati
       (1..8).each do |lane|
         barcode_file_path = @flowcell.custom_barcode_path(lane)
         if File.exists?(barcode_file_path)
-          orginal_fastq_path = path_for_lane(lane)
+          orginal_fastq_path = path_for_lane(lane, groups)
           command = "zcat #{orginal_fastq_path} |"
           command += " fastx_barcode_splitter.pl --bcfile #{barcode_file_path}"
+          command += " --bol --prefix \"s_\" --suffix \".fastq\""
           puts command
         end
       end
