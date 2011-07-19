@@ -47,10 +47,10 @@ describe Illuminati::SampleReport do
     tables[0].contains?('td').should == true
   end
 
-  it "should parse sample summary file" do
+  it "should parse sample summary file to html doc" do
     sample_summary_filename = File.join(@paths.aligned_stats_dir, "#{@paths.id}_Sample_Summary.htm")
     File.exists?(sample_summary_filename).should == true
-    doc = @report.parse_report(sample_summary_filename)
+    doc = @report.parse_file(sample_summary_filename)
     tables = doc.find('table')
     tables.size.should == 14
     headers = tables.collect {|t| t.contains?('th')}
@@ -59,10 +59,9 @@ describe Illuminati::SampleReport do
   it "should parse tables" do
     sample_summary_filename = File.join(@paths.aligned_stats_dir, "#{@paths.id}_Sample_Summary.htm")
     File.exists?(sample_summary_filename).should == true
-    doc = @report.parse_report(sample_summary_filename)
+    doc = @report.parse_file(sample_summary_filename)
     table_data = @report.parse_tables(doc)
     table_data.size.should == 6
-    puts table_data.inspect
-
+    puts table_data[1].inspect
   end
 end

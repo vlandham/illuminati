@@ -147,11 +147,34 @@ module Illuminati
     end
 
     def report
+
     end
 
-    def parse_report filename
+    def parse_sample_summary filename
+      doc = parse_file(filename)
+      tables = parse_tables(doc)
+      sample_data = combine_tables(tables)
+    end
+
+    def combine_tables tables
+      tables.each do |table|
+        if is_sample_table?(table)
+
+        end
+      end
+    end
+
+    def is_sample_table? table
+      !table[0]["Sample"].nil?
+    end
+
+    def parse_file filename
       file_string = File.open(filename, 'r').read
       html_doc = parse_html(file_string)
+    end
+
+    def parse_html string
+      HtmlDoc.new(string)
     end
 
     def parse_tables doc
@@ -187,7 +210,7 @@ module Illuminati
       end
       data
     end
-
+  private
     def apply_headers headers, table
       data = []
       if headers.empty?
@@ -211,10 +234,6 @@ module Illuminati
     def extract_headers table
       trs = table.find('tr')
       trs[-1].content_for_all('th')
-    end
-
-    def parse_html string
-      HtmlDoc.new(string)
     end
 
   end
