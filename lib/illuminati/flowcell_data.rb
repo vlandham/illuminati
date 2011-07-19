@@ -90,6 +90,10 @@ module Illuminati
       directories_in aligned_dir, stats_pattern
     end
 
+    def aligned_stats_dir
+      aligned_stats_dirs[0]
+    end
+
     def script_path
       script_file_name = "#{ADMIN_PATH}/#{@flowcell_id}.sh"
     end

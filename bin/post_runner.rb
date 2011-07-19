@@ -143,11 +143,9 @@ module Illuminati
       status "running fastqc"
       run_fastqc @flowcell.fastq_filter_dir
 
-      ivc_file = File.join(@flowcell.unaligned_stats_dir, "IVC.htm")
-      convert_to_pdf ivc_file
 
-      status "distributing unaligned stats directory"
-      distribute_to_unique distributions, @flowcell.unaligned_stats_dir
+      #status "distributing unaligned stats directory"
+      #distribute_to_unique distributions, @flowcell.unaligned_stats_dir
       status "distributing fastqc directory"
       distribute_to_unique distributions, @flowcell.fastqc_dir
     end
@@ -213,16 +211,34 @@ module Illuminati
     end
 
     def distribute_aligned_stats_files distribution
-      base_stats_files = ["Flowcell_Summary_*"]
-      stats_files = ["Barcode_Lane_Summary.htm", "Sample_Summary.htm"]
-      stats_paths = find_files_in(base_stats_files, @flowcell.aligned_dir)
-      stats_paths.concat(find_files_in(stats_files, @flowcell.aligned_stats_dirs))
+      new_stats_dir_path = File.join(@flowcell.aligned_dir, "Summary_Stats_#{@flowcell.id}")
+      execute "mkdir -p #{new_stats_dir_path}"
 
-      distribute_to_unique distribution, stats_paths
+      ivc_file = File.join(@flowcell.unaligned_stats_dir, "IVC.htm")
+      convert_to_pdf ivc_file
+      ivc_pdf = find_files_in "IVC.pdf", @flowcell.unaligned_stats_dir
+      copy_files ivc_pdf, new_stats_dir_path
+
+      demultiplex_stats_file = find_files_in "Demultiplex_Stats.htm", @flowcell.unaligned_stats_dir
+      copy_files demultiplex_stats_file, new_stats_dir_path
+
+      stats_files = ["Barcode_Lane_Summary.htm", "Sample_Summary.htm"]
+      summary_files = find_files_in(stats_files, @flowcell.aligned_stats_dirs)
+      copy_files summary_files, new_stats_dir_path
+
+      distribute_to_unique distribution, new_stats_dir_path
+    end
+
+    def copy_files file_paths, destination_path
+      files = [file_paths].flatten
+      files.each do |file_path|
+        execute "cp #{file_path} #{destination_path}"
+      end
     end
 
     def find_files_in file_matches, root_paths
       root_paths = [root_paths].flatten
+      file_matches = [file_matches].flatten
       returned_paths = []
       root_paths.each do |root_path|
         matched_paths = file_matches.collect do |file|
