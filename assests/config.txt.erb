@@ -4,7 +4,7 @@ WEB_DIR_ROOT http://molbio/solexaRuns/
 NUM_LEADING_DIRS_TO_STRIP 1
 EXPT_DIR <%= @input_dir %>
 <% @lanes.each do |lane| %>
-<%= "#{lane[:lane]}:ELAND_GENOME /qcdata/igenome/#{lane[:genome]}\n" %>
+<%= "#{lane[:lane]}:ELAND_GENOME /solexa/igenome/#{lane[:genome]}\n" %>
 <%= "#{lane[:lane]}:ANALYSIS #{lane[:protocol]}\n" %>
 <%= "#{lane[:lane]}:ELAND_MAX_MATCHES 10\n" %>
 <%= "#{lane[:lane]}:USE_BASES #{lane[:bases]}\n" %>
