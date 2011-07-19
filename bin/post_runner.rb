@@ -106,7 +106,7 @@ module Illuminati
 
       run_aligned distributions
 
-      distribute_to_qcdata @flowcell
+      distribute_to_qcdata
       stop_flowcell
     end
 
@@ -146,6 +146,26 @@ module Illuminati
       distribute_to_unique distributions, @flowcell.unaligned_stats_dir
       status "distributing fastqc directory"
       distribute_to_unique distributions, @flowcell.fastqc_dir
+    end
+
+    def split_custom_barcodes groups
+      (1..8).each do |lane|
+        barcode_file_path = @flowcell.custom_barcode_path(lane)
+        if File.exists?(barcode_file_path)
+          orginal_fastq_path = path_for_lane(lane)
+          command = "zcat #{orginal_fastq_path} |"
+          command += " fastx_barcode_splitter.pl --bcfile #{barcode_file_path}"
+          puts command
+        end
+      end
+    end
+
+    def path_for_lane lane, groups
+      lane_groups = groups.select {|g| g[:lane] == lane}
+      if !lane_groups.size == 1
+        puts "ERROR expected only one lane file, instead found #{lane_groups.size}"
+      end
+      lane_groups[0][:filter_path]
     end
 
     def distribute_to_qcdata
@@ -371,7 +391,7 @@ end
 if __FILE__ == $0
   flowcell_id = ARGV[0]
   if flowcell_id
-    flowcell = FlowcellData.new flowcell_id, TEST
+    flowcell = Illuminati::FlowcellData.new flowcell_id, TEST
     runner = Illuminati::PostRunner.new flowcell, TEST
     runner.run
   else
