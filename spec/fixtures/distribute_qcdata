@@ -17,12 +17,11 @@ mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
 mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123/Basecall_Stats_123
 cp -r /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123 /solexa/bin/illuminati/spec/sandbox/flowcell_123
 mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
-# Error: file not found:/solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123/IVC.htm.
 wkhtmltopdf /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123/IVC.htm /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123/IVC.pdf
-cp  /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
-cp  /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
-cp  /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
-cp  /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
+cp /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123/IVC.pdf /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
+cp /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123/Demultiplex_Stats.htm /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
+cp /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Project_123/Summary_Stats_FC/Barcode_Lane_Summary.htm /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
+cp /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Project_123/Summary_Stats_FC/Sample_Summary.htm /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
 # Error: file not found:/solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123.
 mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
 cp -r /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123 /solexa/bin/illuminati/spec/sandbox/flowcell_123
