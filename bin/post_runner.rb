@@ -164,6 +164,7 @@ module Illuminati
           command += " fastx_barcode_splitter.pl --bcfile #{barcode_file_path}"
           command += " --bol --prefix \"#{file_prefix}\""
           command += " --suffix \"#{file_suffix}\""
+          command += " > #{@flowcell.custom_barcode_path_out(sample_data[:lane])} 2>&1"
           execute command
 
           unmatched = Dir.glob("#{file_prefix}unmatched#{file_suffix}")

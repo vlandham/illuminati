@@ -103,8 +103,11 @@ module Illuminati
         puts "ERROR: invalid lane number #{lane}"
         raise "invalid lane"
       end
-
       File.join(base_dir, "custom_barcodes_#{lane}.txt")
+    end
+
+    def custom_barcode_path_out lane
+      custom_barcode_path(lane) + ".out"
     end
 
     def info_path
