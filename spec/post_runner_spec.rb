@@ -3,17 +3,28 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 require 'post_runner'
 
 class FakeFlowcell
-  attr_accessor :base_dir, :unaligned_dir, :id, :qc_dir, :unaligned_stats_dir, :aligned_dir, :aligned_stats_dir, :fastqc_dir
+  attr_accessor :base_dir, :unaligned_dir, :id, :qc_dir, :unaligned_stats_dir, :aligned_dir, :aligned_stats_dir, :fastqc_dir, :unaligned_project_dir, :aligned_project_dir, :fastq_combine_dir, :fastq_filter_dir, :eland_combine_dir
+
+
 
   def initialize
     @base_dir = File.expand_path(File.join(File.dirname(__FILE__), "data", "flowcell_123"))
     @unaligned_dir = File.join(@base_dir, 'Unaligned')
+    @unaligned_project_dir = File.join(@unaligned_dir, "Project_123")
     @id = '123'
     @qc_dir = File.expand_path(File.join(File.dirname(__FILE__), "sandbox", "flowcell_123"))
     @unaligned_stats_dir = File.join(@unaligned_dir, 'Basecall_Stats_123')
     @aligned_dir = File.join(@base_dir, 'Aligned')
-    @aligned_stats_dir = File.join(@aligned_dir, "Project_123", 'Summary_Stats_FC')
+    @aligned_project_dir = File.join(@aligned_dir, "Project_123")
+    @aligned_stats_dir = File.join(@aligned_project_dir, 'Summary_Stats_FC')
     @fastqc_dir = File.join(@unaligned_dir, 'filter','fastqc')
+    @fastq_combine_dir = File.join(@unaligned_dir, 'all')
+    @fastq_filter_dir = File.join(@unaligned_dir, 'filter')
+    @eland_combine_dir = File.join(@aligned_dir, 'all')
+  end
+
+  def custom_barcode_path lane
+    File.join(@base_dir, "custom_barcode_#{lane}.txt")
   end
 end
 
@@ -109,8 +120,9 @@ describe Illuminati::PostRunner do
 
   describe "run" do
     it "should say its running" do
-      #out = capture(:stdout) {@runner.run}
-      #out.should == nil
+      out = capture(:stdout) {@runner.run}
+      run_out = fixture('post_runner_run')
+      out.should == run_out
     end
   end
 end

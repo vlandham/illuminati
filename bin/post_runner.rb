@@ -19,15 +19,17 @@ module Illuminati
 
     def self.distributions_for flowcell_id
       raw_data = query_ngslims flowcell_id
-
-      distribution_paths = raw_data[0].split(":")
-      distribution_lane_sets = raw_data[1].split(":")
       distribution_data = []
-      distribution_lane_sets.each_with_index do |lane_set, index|
-        lanes = lane_set.split(",")
-        lanes.each do |lane|
-          dist = {:lane => lane.to_i, :path => distribution_paths[index]}
-          distribution_data << dist
+
+      if raw_data.size >= 2
+        distribution_paths = raw_data[0].split(":")
+        distribution_lane_sets = raw_data[1].split(":")
+        distribution_lane_sets.each_with_index do |lane_set, index|
+          lanes = lane_set.split(",")
+          lanes.each do |lane|
+            dist = {:lane => lane.to_i, :path => distribution_paths[index]}
+            distribution_data << dist
+          end
         end
       end
       distribution_data

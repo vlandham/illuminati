@@ -1,3 +1,4 @@
+# postrun start
 # processing unaligned
 mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/all
 # 1 fastq files found in /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Project_123
@@ -55,3 +56,5 @@ mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
 # Creating directory /solexa/bin/illuminati/spec/sandbox/flowcell_123/fastqc
 mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123/fastqc
 cp -r /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter/fastqc /solexa/bin/illuminati/spec/sandbox/flowcell_123
+cp /solexa/bin/illuminati/spec/data/flowcell_123/postrun_123.sh /solexa/bin/illuminati/spec/sandbox/flowcell_123/postrun_123.sh
+# postrun done
