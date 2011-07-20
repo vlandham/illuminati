@@ -87,9 +87,3 @@ describe Illuminati::HtmlParser do
   end
 end
 
-describe Illuminati::SampleReport do
-  before(:each) do
-    @paths = FakePathsReport.new
-    @report = Illuminati::SampleReport.new(@paths.unaligned_stats_dir, @paths.aligned_stats_dirs)
-  end
-end

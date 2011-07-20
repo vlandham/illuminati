@@ -224,23 +224,3 @@ module Illuminati
   end
 end
 
-module Illuminati
-  class SampleReport < HtmlParser
-    def initialize unaligned_dir, aligned_dir
-      @unaligned_dir = unaligned_dir
-      @aligned_dir = aligned_dir
-    end
-
-    def report
-
-    end
-
-    def parse_sample_summary filename
-      doc = parse_file(filename)
-      tables = parse_tables(doc)
-      sample_data = combine_tables(tables)
-    end
-
-
-  end
-end
