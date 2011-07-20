@@ -118,16 +118,14 @@ The alignment's make command contains another @POST_RUN_COMMAND@ which starts up
 The post run functionality is contained in @bin/post_runner.rb@. Its an elaborate maze of fun. But hopefully the method names at least hint at what is going on. Briefly, this script does the following:
 * use @cat@ to combine the multiple fastq.gz files that CASAVA makes into one for each lane / sample.
 * use @zcat@ and the @bin/fastq_filter.rb@ script to filter out reads that don't pass filter.
+* split lanes with custom barcodes using @fastx_barcode_splitter.pl@.
+** only if lanes have been custom barcoded, and indicated as such in SampleMultiplex.csv.
 * distribute fastq.gz files to their project directories.
-* run fastqc on the filtered fastq.gz files and distribute the results
-* distribute the relevant stats files to the project directories
+* run fastqc on the filtered fastq.gz files and distribute the results.
+* create Sample_Report.csv to summarize the sample data
+* distribute the relevant stats files to the project directories.
 * combine export files using @cat@ and distribute these files.
-* distribute relevant qa / qc and stats files to the appropriate qcdata directory
-
-Soon, the post run process will also
-* create Sample_Report.csv file
-* demultiplex custom barcoded lanes
-* convert export files to bam files and distribute those instead
+* distribute relevant qa / qc and stats files to the appropriate qcdata directory.
 
 h4. Email & Logging
 
