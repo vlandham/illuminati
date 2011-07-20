@@ -1,0 +1,6 @@
+Barcode	Count	Location
+GATCGT	20664258	./tmp/s_6_1GATCGT.fastq
+TCAGGT	1363	./tmp/s_6_1TCAGGT.fastq
+TCCACA	517	./tmp/s_6_1TCCACA.fastq
+unmatched	14770134	./tmp/s_6_1unmatched.fastq
+total	35436272
