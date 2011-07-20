@@ -33,8 +33,10 @@ General overview of the execution of the analysis pipeline this tool performs:
 * Perform alignment to reference genome
 * Aggregate and rename unaligned reads
 * Remove reads that do not pass filter
+* Split custom barcoded lanes
 * Analyze unaligned reads using fastqc
 * Aggregate and rename export files
+* Create Sample_Report for name / lane / sample mapping
 * Distribute data to project directories
 * Distribute stats and quality control analysis to qcdata directory
 
@@ -42,6 +44,7 @@ h2. Requirements
 
 * *CASAVA 1.8.0* - this tool is primarily a wrapper around the CASAVA pipeline software help automate it. This tool is designed to deal specifically with CASAVA 1.8, and would fail completely with an older version. CASAVA binaries should be located at @CASAVA_PATH@ (see @lib/illuminati/constants.rb@).
 * *fastqc* - we need fastqc available from the command line. Tested with fastqc version *0.9.2*.
+* *fastx_barcode_splitter.pl* - needs to be availible from command line
 * *ngsquery.pl* - the most troublesome external dependency. ngsquery.pl should sit in the @SCRIPT_PATH@ directory. It is a perl script that connects to our LIMS system and provides flowcell and distribution information back to Illuminati. Future work will be to eliminate or reduce this external dependency. 
 * *fastqc.pl* - another external perl script. This one automates the running of fastqc and a bit of post processing to make convenient, easy to read, centralized output. Future work includes rewriting this script in ruby for fun and including it in Illuminati.
 * *Custom Directory Structure* - Take a look at @lib/illuminati/constants.rb@ to get a feel for the expected directory structure. Modifying this file as well as @assests/config.txt.erb@ should allow for your own directory structure, but no promises. Future work includes moving these paths to a configuration file.
