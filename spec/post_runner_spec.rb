@@ -3,12 +3,17 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 require 'post_runner'
 
 class FakeFlowcell
-  attr_accessor :base_dir, :unaligned_dir, :id
+  attr_accessor :base_dir, :unaligned_dir, :id, :qc_dir, :unaligned_stats_dir, :aligned_dir, :aligned_stats_dir, :fastqc_dir
 
   def initialize
-    @base_dir = File.expand_path(File.dirname(__FILE__) + "/data")
+    @base_dir = File.expand_path(File.join(File.dirname(__FILE__), "data", "flowcell_123"))
     @unaligned_dir = File.join(@base_dir, 'Unaligned')
     @id = '123'
+    @qc_dir = File.expand_path(File.join(File.dirname(__FILE__), "sandbox", "flowcell_123"))
+    @unaligned_stats_dir = File.join(@unaligned_dir, 'Basecall_Stats_123')
+    @aligned_dir = File.join(@base_dir, 'Aligned')
+    @aligned_stats_dir = File.join(@aligned_dir, "Project_123", 'Summary_Stats_FC')
+    @fastqc_dir = File.join(@unaligned_dir, 'filter','fastqc')
   end
 end
 
@@ -85,6 +90,27 @@ describe Illuminati::PostRunner do
         result[:read].should == data[:read]
         result[:sample_name].should == data[:sample_name]
       end
+    end
+  end
+
+  describe "get_file_data" do
+    before(:each) do
+      @all_data = YAML.load(data("illumina_fastq_files.yaml"))
+    end
+  end
+
+  describe "distribute_to_qcdata" do
+    it "should say its distributing files" do
+      out = capture(:stdout) {@runner.distribute_to_qcdata}
+      qcdata_out = fixture('distribute_qcdata')
+      out.should == qcdata_out
+    end
+  end
+
+  describe "run" do
+    it "should say its running" do
+      #out = capture(:stdout) {@runner.run}
+      #out.should == nil
     end
   end
 end

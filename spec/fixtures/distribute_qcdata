@@ -1,0 +1,32 @@
+# distributing to qcdata
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
+# Creating directory /solexa/bin/illuminati/spec/sandbox/flowcell_123/InterOp
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123/InterOp
+cp -r /solexa/bin/illuminati/spec/data/flowcell_123/InterOp /solexa/bin/illuminati/spec/sandbox/flowcell_123
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
+cp -r /solexa/bin/illuminati/spec/data/flowcell_123/RunInfo.xml /solexa/bin/illuminati/spec/sandbox/flowcell_123
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
+cp -r /solexa/bin/illuminati/spec/data/flowcell_123/Events.log /solexa/bin/illuminati/spec/sandbox/flowcell_123
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
+# Creating directory /solexa/bin/illuminati/spec/sandbox/flowcell_123/reports
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123/reports
+cp -r /solexa/bin/illuminati/spec/data/flowcell_123/Data/reports /solexa/bin/illuminati/spec/sandbox/flowcell_123
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
+# Creating directory /solexa/bin/illuminati/spec/sandbox/flowcell_123/Basecall_Stats_123
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123/Basecall_Stats_123
+cp -r /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123 /solexa/bin/illuminati/spec/sandbox/flowcell_123
+mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
+# Error: file not found:/solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123/IVC.htm.
+wkhtmltopdf /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123/IVC.htm /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123/IVC.pdf
+cp  /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
+cp  /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
+cp  /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
+cp  /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
+# Error: file not found:/solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123.
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
+cp -r /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123 /solexa/bin/illuminati/spec/sandbox/flowcell_123
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
+# Creating directory /solexa/bin/illuminati/spec/sandbox/flowcell_123/fastqc
+mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123/fastqc
+cp -r /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter/fastqc /solexa/bin/illuminati/spec/sandbox/flowcell_123
