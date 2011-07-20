@@ -111,6 +111,17 @@ module Illuminati
     def to_yaml
       self.to_h.to_yaml
     end
+
+    def sample_report_data
+      all_reads_data = []
+      outputs.each_with_index do |output, index|
+        data = {:output => output, :lane => lane, :name => name,
+                :illumina => illumina_barcode, :custom => custom_barcode,
+                :read => reads[index], :genome => genome}
+        all_reads_data << data
+      end
+      all_reads_data
+    end
   end
 end
 
@@ -194,12 +205,16 @@ module Illuminati
     end
 
     def add_lanes lims_lane_data, multiplex_data
+      seen_lanes = []
       lims_lane_data.each do |lims_lane|
         lane_number = lims_lane[:lane].to_i
-        lane_multiplex_data = multiplex_data.select {|data| data[:lane].to_i == lane_number}
-        lane = Lane.new(lane_number)
-        lane.add_samples(lims_lane, lane_multiplex_data)
-        self.lanes << lane
+        if !seen_lanes.include? lane_number
+          lane_multiplex_data = multiplex_data.select {|data| data[:lane].to_i == lane_number}
+          lane = Lane.new(lane_number)
+          lane.add_samples(lims_lane, lane_multiplex_data)
+          self.lanes << lane
+          seen_lanes << lane_number
+        end
       end
       self.lanes.sort! {|x,y| x.number <=> y.number}
     end
