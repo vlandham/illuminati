@@ -138,6 +138,13 @@ end
 
 module Illuminati
   class HtmlParser
+
+    def table_data filename
+      doc = parse_file(filename)
+      table_data = parse_tables(doc)
+      table_data
+    end
+
     def combine_tables tables
       sample_data = []
       tables.each_with_index do |table, index|
