@@ -59,18 +59,18 @@ h4. Step 1: Run startup.rb
 Run the @bin/startup.rb@ script passing in the flowcell id:
 
 <pre>
-$ cd /qcdata/illuminati
+$ cd /solexa/bin/illuminati
 $ ./bin/startup 639AXXPY
 </pre>
 
-This should generate an Admin script in @/qcdata/Admin@. This admin script is named @<flowcell_id>.sh@ and is meant to be executed to start off the main Illuminati process. So for example, this admin script would be named @639AXXPY.sh@.
+This should generate an Admin script in @/solexa/runs/@. This admin script is named @<flowcell_id>.sh@ and is meant to be executed to start off the main Illuminati process. So for example, this admin script would be named @639AXXPY.sh@.
 
 h4. Step 2: Review Admin Script
 
 Have a look at the admin script to make sure things look good
 
 <pre>
-$ cd /qcdata/Admin
+$ cd /solexa/runs
 less 639AXXPY.sh
 </pre>
 
@@ -130,7 +130,7 @@ h4. Email & Logging
 
 You also get emails along the way. Check out the @EMAIL_LIST@ in @lib/illuminati/constants.rb@ to see who gets emailed. 
 
-A log file is also created for each flowcell in @/qcdata/log@. This will be used for future dashboard-style awesome-ness.
+A log file is also created for each flowcell in @/solexa/runs/log@. This will be used for future dashboard-style awesome-ness.
 
 @align_runner.rb@ and @post_runner.rb@ also generate log files during their execution. If @post_runner.rb@ completes, it will produce a shell script with all the commands it did, so that theoretically, you could run it again if you wanted.
 
@@ -223,7 +223,7 @@ h2. Testing Illuminati
 Some effort has been put in to writing tests to ensure components of Illuminati are functional and don't break when new features are added. These tests are currently incomplete, but it is a decent start. If you are on the particular machine this software was meant to be run on, you can simply run autotest to check all tests:
 
 <pre>
-$ cd /qcdata/illuminati
+$ cd /solexa/bin/illuminati
 $ autotest
 </pre>
 
