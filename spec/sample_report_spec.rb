@@ -29,10 +29,10 @@ class FakePathsReport
   end
 end
 
-describe Illuminati::SampleReport do
+describe Illuminati::HtmlReader do
   before(:each) do
     @paths = FakePathsReport.new
-    @report = Illuminati::SampleReport.new(@paths.unaligned_stats_dir, @paths.aligned_stats_dirs)
+    @report = Illuminati::HtmlReader.new
   end
 
   it "should parse html into tree" do
@@ -47,20 +47,53 @@ describe Illuminati::SampleReport do
     tables[0].contains?('td').should == true
   end
 
-  it "should parse sample summary file to html doc" do
-    sample_summary_filename = File.join(@paths.aligned_stats_dir, "#{@paths.id}_Sample_Summary.htm")
-    File.exists?(sample_summary_filename).should == true
-    doc = @report.parse_file(sample_summary_filename)
-    tables = doc.find('table')
-    tables.size.should == 14
-    headers = tables.collect {|t| t.contains?('th')}
+  describe "Sample Summary" do
+    before(:each) do
+      @sample_summary_filename = File.join(@paths.aligned_stats_dir, "#{@paths.id}_Sample_Summary.htm")
+      File.exists?(@sample_summary_filename).should == true
+    end
+
+    it "should parse sample summary file to html doc" do
+      doc = @report.parse_file(@sample_summary_filename)
+      tables = doc.find('table')
+      tables.size.should == 14
+      headers = tables.collect {|t| t.contains?('th')}
+    end
+
+    it "should parse tables" do
+      doc = @report.parse_file(@sample_summary_filename)
+      table_data = @report.parse_tables(doc)
+      table_data.size.should == 6
+    end
   end
 
-  it "should parse tables" do
-    sample_summary_filename = File.join(@paths.aligned_stats_dir, "#{@paths.id}_Sample_Summary.htm")
-    File.exists?(sample_summary_filename).should == true
-    doc = @report.parse_file(sample_summary_filename)
-    table_data = @report.parse_tables(doc)
-    table_data.size.should == 6
+  describe "Demultiplexed Stats" do
+    before(:each) do
+      @paths.id = "639P5AAXX"
+      @demultiplex_stats_filename = File.join(@paths.unaligned_stats_dir,"#{@paths.id}_Demultiplex_Stats.htm")
+      File.exists?(@demultiplex_stats_filename).should == true
+    end
+
+    it "should parse demultiplex stats file html to doc" do
+      doc = @report.parse_file(@demultiplex_stats_filename)
+      tables = doc.find('table')
+      tables.size.should == 4
+    end
+
+    it "should parse tables" do
+      doc = @report.parse_file(@demultiplex_stats_filename)
+      table_data = @report.parse_tables(doc)
+      table_data.size.should == 2
+      puts table_data[0]
+    end
   end
+end
+
+describe Illuminati::SampleReport do
+  before(:each) do
+    @paths = FakePathsReport.new
+    @report = Illuminati::SampleReport.new(@paths.unaligned_stats_dir, @paths.aligned_stats_dirs)
+  end
+
+
 end

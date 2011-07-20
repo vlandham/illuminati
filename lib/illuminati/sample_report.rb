@@ -139,23 +139,7 @@ module Illuminati
 end
 
 module Illuminati
-
-  class SampleReport
-    def initialize unaligned_dir, aligned_dir
-      @unaligned_dir = unaligned_dir
-      @aligned_dir = aligned_dir
-    end
-
-    def report
-
-    end
-
-    def parse_sample_summary filename
-      doc = parse_file(filename)
-      tables = parse_tables(doc)
-      sample_data = combine_tables(tables)
-    end
-
+  class HtmlReader
     def combine_tables tables
       sample_data = []
       tables.each_with_index do |table, index|
@@ -239,6 +223,38 @@ module Illuminati
       trs = table.find('tr')
       trs[-1].content_for_all('th')
     end
+  end
+end
+
+module Illuminati
+  class DemultiplexHtmlReader < HtmlReader
+    def initialize demultiplex_filename
+      @filename = demultiplex_filename
+      super
+    end
+
+    def parse
+    end
+  end
+end
+
+module Illuminati
+  class SampleReport < HtmlReader
+    def initialize unaligned_dir, aligned_dir
+      @unaligned_dir = unaligned_dir
+      @aligned_dir = aligned_dir
+    end
+
+    def report
+
+    end
+
+    def parse_sample_summary filename
+      doc = parse_file(filename)
+      tables = parse_tables(doc)
+      sample_data = combine_tables(tables)
+    end
+
 
   end
 end
