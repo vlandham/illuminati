@@ -62,6 +62,5 @@ describe Illuminati::SampleReport do
     doc = @report.parse_file(sample_summary_filename)
     table_data = @report.parse_tables(doc)
     table_data.size.should == 6
-    puts table_data[1].inspect
   end
 end

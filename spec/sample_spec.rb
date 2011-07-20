@@ -32,6 +32,18 @@ describe Illuminati::Sample do
     @sample.id.should == @lims_data[:lane]
   end
 
+  it "should have outputs" do
+    @sample.add_lims_data(@lims_data)
+    @sample.outputs.should == ["s_#{@lims_data[:lane]}_1_NoIndex.fastq.gz"]
+    @sample.barcode = "ACTAGC"
+    @sample.barcode_type = :illumina
+    @sample.outputs.should == ["s_#{@lims_data[:lane]}_1_ACTAGC.fastq.gz"]
+    @sample.barcode_type = :custom
+    @sample.outputs.should == ["s_#{@lims_data[:lane]}_1_ACTAGC.fastq.gz"]
+    @sample.protocol = "eland_pair"
+    @sample.outputs.should == ["s_#{@lims_data[:lane]}_1_ACTAGC.fastq.gz","s_#{@lims_data[:lane]}_2_ACTAGC.fastq.gz"]
+  end
+
   it "should indicate if sample is control or not" do
     @sample.genome = "phix"
     @sample.control.should == "Y"

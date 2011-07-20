@@ -47,10 +47,27 @@ module Illuminati
       self.barcode_type == :custom ? self.barcode : ""
     end
 
+    def barcode_string
+      self.barcode.empty? ? "NoIndex" : self.barcode
+    end
+
     def id
       id = "#{self.lane}"
       id += "_#{illumina_barcode}" unless illumina_barcode.empty?
       id
+    end
+
+    def outputs
+      id_array = []
+      reads.each do |read|
+        id = "s_#{self.lane}_#{read}_#{self.barcode_string}.fastq.gz"
+        id_array << id
+      end
+      id_array
+    end
+
+    def reads
+      (1..read_count).to_a
     end
 
     def clean_name
@@ -65,7 +82,7 @@ module Illuminati
     end
 
     def read_count
-      self.protocol == "eland_pair" ? 2 : 1
+      self.protocol =~ /^eland_pair/ ? 2 : 1
     end
 
     def description

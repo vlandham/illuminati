@@ -157,12 +157,16 @@ module Illuminati
     end
 
     def combine_tables tables
-      tables.each do |table|
+      sample_data = []
+      tables.each_with_index do |table, index|
         if is_sample_table?(table)
-
+          table.each do |sample|
+            read = ([1,3].include? index) ? 1 : 2
+          end
         end
       end
     end
+
 
     def is_sample_table? table
       !table[0]["Sample"].nil?
