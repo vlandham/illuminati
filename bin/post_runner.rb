@@ -143,9 +143,6 @@ module Illuminati
       status "running fastqc"
       run_fastqc @flowcell.fastq_filter_dir
 
-
-      #status "distributing unaligned stats directory"
-      #distribute_to_unique distributions, @flowcell.unaligned_stats_dir
       status "distributing fastqc directory"
       distribute_to_unique distributions, @flowcell.fastqc_dir
     end
@@ -191,14 +188,6 @@ module Illuminati
       custom_barcode_data
     end
 
-    def sample_for_lane lane, groups
-      lane_groups = groups.select {|g| g[:lane] == lane}
-      if !lane_groups.size == 1
-        puts "ERROR expected only one lane file, instead found #{lane_groups.size}"
-      end
-      lane_groups[0]
-    end
-
     def distribute_to_qcdata
       status "distributing to qcdata"
       execute "mkdir -p #{@flowcell.qc_dir}"
@@ -224,7 +213,7 @@ module Illuminati
       copy_files demultiplex_stats_file, new_stats_dir_path
 
       stats_files = ["Barcode_Lane_Summary.htm", "Sample_Summary.htm"]
-      summary_files = find_files_in(stats_files, @flowcell.aligned_stats_dirs)
+      summary_files = find_files_in(stats_files, @flowcell.aligned_stats_dir)
       copy_files summary_files, new_stats_dir_path
 
       distribute_to_unique distribution, new_stats_dir_path
