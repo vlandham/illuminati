@@ -31,13 +31,13 @@ end
 describe Illuminati::HtmlParser do
   before(:each) do
     @paths = FakePathsReport.new
-    @report = Illuminati::HtmlParser.new
+    @parser = Illuminati::HtmlParser.new
   end
 
   it "should parse html into tree" do
     simple_html = "<body>\n<p>Terrible HTML</p><table><tr><td>Project Name</td><td>Project dada</td></tr></table></body>"
     example_results = {:tag=>"body", :content=>"", :children=>[{:tag=>"p", :content=>"Terrible HTML"}, {:tag=>"table", :content=>"", :children=>[{:tag=>"tr", :content=>"", :children=>[{:tag=>"td", :content=>"Project Name"}, {:tag => "td", :content =>"Project dada"}]}]}]}
-    doc = @report.parse_html(simple_html)
+    doc = @parser.parse_html(simple_html)
     doc.to_h.should == example_results
     tables = doc.find('table')
     tables.size.should == 1
@@ -53,15 +53,15 @@ describe Illuminati::HtmlParser do
     end
 
     it "should parse sample summary file to html doc" do
-      doc = @report.parse_file(@sample_summary_filename)
+      doc = @parser.parse_file(@sample_summary_filename)
       tables = doc.find('table')
       tables.size.should == 14
       headers = tables.collect {|t| t.contains?('th')}
     end
 
     it "should parse tables" do
-      doc = @report.parse_file(@sample_summary_filename)
-      table_data = @report.parse_tables(doc)
+      doc = @parser.parse_file(@sample_summary_filename)
+      table_data = @parser.parse_tables(doc)
       table_data.size.should == 6
     end
   end
@@ -74,14 +74,14 @@ describe Illuminati::HtmlParser do
     end
 
     it "should parse demultiplex stats file html to doc" do
-      doc = @report.parse_file(@demultiplex_stats_filename)
+      doc = @parser.parse_file(@demultiplex_stats_filename)
       tables = doc.find('table')
       tables.size.should == 4
     end
 
     it "should parse tables" do
-      doc = @report.parse_file(@demultiplex_stats_filename)
-      table_data = @report.parse_tables(doc)
+      doc = @parser.parse_file(@demultiplex_stats_filename)
+      table_data = @parser.parse_tables(doc)
       table_data.size.should == 2
     end
   end
