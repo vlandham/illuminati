@@ -1,6 +1,5 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
-require 'illuminati/sample_report'
-
+require 'illuminati/html_parser'
 
 class FakePathsReport
   attr_accessor :base_dir, :unaligned_dir, :id
@@ -29,10 +28,10 @@ class FakePathsReport
   end
 end
 
-describe Illuminati::HtmlReader do
+describe Illuminati::HtmlParser do
   before(:each) do
     @paths = FakePathsReport.new
-    @report = Illuminati::HtmlReader.new
+    @report = Illuminati::HtmlParser.new
   end
 
   it "should parse html into tree" do
@@ -84,7 +83,6 @@ describe Illuminati::HtmlReader do
       doc = @report.parse_file(@demultiplex_stats_filename)
       table_data = @report.parse_tables(doc)
       table_data.size.should == 2
-      puts table_data[0]
     end
   end
 end
@@ -94,6 +92,4 @@ describe Illuminati::SampleReport do
     @paths = FakePathsReport.new
     @report = Illuminati::SampleReport.new(@paths.unaligned_stats_dir, @paths.aligned_stats_dirs)
   end
-
-
 end

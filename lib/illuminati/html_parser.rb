@@ -1,5 +1,3 @@
-require 'rexml/document'
-include REXML
 
 module Illuminati
   class HtmlElement
@@ -139,7 +137,7 @@ module Illuminati
 end
 
 module Illuminati
-  class HtmlReader
+  class HtmlParser
     def combine_tables tables
       sample_data = []
       tables.each_with_index do |table, index|
@@ -227,7 +225,7 @@ module Illuminati
 end
 
 module Illuminati
-  class DemultiplexHtmlReader < HtmlReader
+  class DemultiplexHtmlParser < HtmlParser
     def initialize demultiplex_filename
       @filename = demultiplex_filename
       super
@@ -239,7 +237,7 @@ module Illuminati
 end
 
 module Illuminati
-  class SampleReport < HtmlReader
+  class SampleReport < HtmlParser
     def initialize unaligned_dir, aligned_dir
       @unaligned_dir = unaligned_dir
       @aligned_dir = aligned_dir
