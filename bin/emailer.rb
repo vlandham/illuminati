@@ -1,5 +1,11 @@
 #! /usr/bin/env ruby
 
+#
+# Script to allow access to emailer class and functionality
+# to scripts external to Illuminati.
+# Used in the run script to email at the start of the
+# primary analysis pipeline
+#
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'illuminati'

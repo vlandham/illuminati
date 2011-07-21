@@ -8,6 +8,19 @@ POSTRUN_SCRIPT = File.join(BASE_BIN_DIR, "post_runner.rb")
 require 'illuminati'
 
 module Illuminati
+  #
+  # Class to manage the execution of the alignment
+  # portion of the CASAVA 1.8 pipeline.
+  #
+  # All this needs to do is run the configure script
+  # and then run make inside the Aligned directory.
+  #
+  # The config.txt file used for alignment should have
+  # already been created during the startup process, to allow
+  # for visual inspection.
+  #
+  # If it fails, AlignRunner should email using Emailer.
+  #
   class AlignRunner
     attr_accessor :test
 
@@ -45,6 +58,9 @@ module Illuminati
       true
     end
 
+    #
+    # Main entry point for AlignRunner.
+    #
     def run(flowcell_id)
       output "starting alignment step for #{flowcell_id}"
       Emailer.email "starting align step for #{flowcell_id}" unless @test

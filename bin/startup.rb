@@ -1,17 +1,36 @@
 #! /usr/bin/env ruby
 
+#
+# startup is the first script to run to begin the primary analysis pipeline.
+# provide it with a flowcell id and it takes care of the rest!
+#
+# It will create a run script (currently in /solexa/run/) with the name
+# [flowcell_id].sh, which contains all the code to start the pipeline.
+#
+# It is kept as a separate file to provide a record of what operations occured
+# during the pipeline. This is also in keeping with how the process functioned
+# previously, and provides some guidance for future runs if Illuminati breaks down.
+#
+# And its a final stopping point to check the output generated in the run script to
+# ensure that everything looks half-way decent.
+#
+
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'illuminati'
 
-# Illuminati executables, so they don't need to be modifiable.
-BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
-ALIGN_SCRIPT = File.join(BASE_BIN_DIR, "align_runner.rb")
-CONFIG_SCRIPT = File.join(BASE_BIN_DIR, "config_maker.rb")
-LOGGER_SCRIPT = File.join(BASE_BIN_DIR, "logger.rb")
-EMAILER_SCRIPT = File.join(BASE_BIN_DIR, "emailer.rb")
 
 module Illuminati
+  # Illuminati executables, so they don't need to be modifiable.
+  BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
+  ALIGN_SCRIPT = File.join(BASE_BIN_DIR, "align_runner.rb")
+  CONFIG_SCRIPT = File.join(BASE_BIN_DIR, "config_maker.rb")
+  LOGGER_SCRIPT = File.join(BASE_BIN_DIR, "logger.rb")
+  EMAILER_SCRIPT = File.join(BASE_BIN_DIR, "emailer.rb")
+
+  #
+  # Helper class to write out script commands to run script.
+  #
   class ScriptWritter
     def initialize filename
       @filename = filename
@@ -32,6 +51,10 @@ module Illuminati
     end
   end
 
+  #
+  # Creates the output for the run script and outputs
+  # it to the run script.
+  #
   class Starter
     def self.write_admin_script flowcell_id
       flowcell_id = flowcell_id.upcase
@@ -112,6 +135,5 @@ if __FILE__ == $0
     puts "ERROR: no flow cell ID provided"
     exit
   end
-
   Illuminati::Starter::write_admin_script flowcell_id
 end

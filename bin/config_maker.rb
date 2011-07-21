@@ -1,5 +1,15 @@
 #! /usr/bin/env ruby
 
+#
+# Hastily written script to create the configuration files needed for the
+# rest of the primary analysis pipeline.
+#
+# Currently makes:
+# * SampleSheet.csv - used for demultiplexing and alignment by CASAVA 1.8
+# * config.txt - used for alignment by CASAVA 1.8
+# * custom_barcode.txt files - used by fastx splitter in post run.
+#
+
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'illuminati'
