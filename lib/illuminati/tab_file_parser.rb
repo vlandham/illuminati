@@ -1,5 +1,28 @@
 module Illuminati
+  #
+  # Converts Tab delineated files into Array of hashes
+  #
   class TabFileParser
+    #
+    # Reads in the contents of a file and converts it to
+    # an Array of hashes. There will be one hash in the array
+    # for each line in the tab-separated file, minus
+    # the header if has_header is set to true.
+    # Missing values in columns will be nil.
+    #
+    # == Parameters:
+    # filename::
+    #   Path to tab-separated file to convert
+    # has_header::
+    #   if true, the Hashes will be keyed off of the
+    #   appropriate column headers. If false, the Hashes
+    #   will be keyed off of indexes starting at 0
+    #
+    # == Returns:
+    # Array of Hashes. If has_header, hash keys will be the
+    # string associated with the column the value is in.
+    # There will be one element in the hash for each column
+    # in the tab-separated file
     def parse filename, has_header = true
       file_string = File.open(filename, 'r').read
       data = parse_tabbed_string(file_string, has_header)

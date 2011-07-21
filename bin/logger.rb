@@ -1,5 +1,15 @@
 #! /usr/bin/env ruby
 
+# Quick script to allow for calling the logging system from
+# external programs easily.
+#
+# == Arguments
+# ::flowcell_id
+#   Flowcell ID of the flowcell we are logging about
+#
+# ::message
+#   Message string to log
+#
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'illuminati'

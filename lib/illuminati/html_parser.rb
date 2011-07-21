@@ -1,7 +1,20 @@
 
 module Illuminati
+  #
+  # Represents a single element in a html document.
+  # Maintains element tag, basic content, and an array of child elements.
+  # Really meant to be just good enough to parse the terrible html CASAVA's
+  # stats files are written in.
+  #
   class HtmlElement
     attr_accessor :tag, :content, :children, :parent
+
+    # Create new HtmlElement.
+    #
+    # == Parameters:
+    # tag::
+    #   the element type. e.g. h1, body, table.
+    #
     def initialize tag
       self.tag = tag
       self.content = ""
@@ -9,17 +22,41 @@ module Illuminati
       self.parent = nil
     end
 
+    #
+    # Add child element to this element.
+    # Children are added FIFO style.
+    # Children also track their parent, which is
+    # set when this method is called.
+    #
+    # == Parameters:
+    # child<HtmlElement>::
+    #   new child element to add
+    #
     def add child
       self.children << child
       child.parent = self
     end
 
+    #
+    # Iterate through each child element.
+    # Yields each child element to the provided block.
+    #
     def each
       self.children.each do |child|
         yield child
       end
     end
 
+    #
+    # Convert contents of element to hash. Also calls
+    # to_h on all children elements and puts them in "children" array.
+    #
+    # == Returns:
+    # Hash containing the following keys:
+    #   :tag - the tag / type of the element
+    #   :content - the content string enclosed by element
+    #   :children - array of children's hash values
+    #
     def to_h
       hash = {}
       hash[:tag] = self.tag
@@ -28,6 +65,14 @@ module Illuminati
       hash
     end
 
+    # Returns array of all children of element who are of a particular type.
+    #
+    # == Parameters:
+    # tag::
+    #   Tag of children to search for.
+    #
+    # == Returns:
+    # Array of elements whose tag values match the input tag parameter.
     def find tag
       found = []
       self.each do |child|
@@ -39,6 +84,16 @@ module Illuminati
       found
     end
 
+    #
+    # Does the element include a child of type 'tag'?
+    #
+    # == Parameters:
+    # tag::
+    #   Tag of children to search for.
+    #
+    # == Returns:
+    # true if the element contains a child with this tag. False otherwise.
+    #
     def contains? tag
       contains = false
       self.each do |child|
@@ -51,6 +106,17 @@ module Illuminati
       contains
     end
 
+    #
+    # Returns an array of all the content values for all children of a particular tag.
+    #
+    # == Parameters:
+    # tag::
+    #   Tag of children to get content for
+    #
+    # == Returns:
+    # The content strings for all children that match the input tag.
+    # An empty array is returned if no children match tag.
+    #
     def content_for_all tag
       content = []
       fields = self.find(tag)
