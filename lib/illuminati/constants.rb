@@ -26,8 +26,10 @@ module Illuminati
   ELAND_COMBINE_PATH = "all"
   # Relative path of Illuminati's fastq filtering directory.
   FASTQ_FILTER_PATH = "filter"
-  # Pattern to use when searching for 
+  # Pattern to use when searching for the Project directory.
   PROJECT_PATTERN = "Project_*"
+  # Pattern to use when searching for the unaligned stats directory.
   FASTQ_STATS_PATTERN = "Basecall_Stats_*"
+  # Pattern to use when searching for the aligned stats directory.
   ELAND_STATS_PATTERN = "Summary_Stats_*"
 end
