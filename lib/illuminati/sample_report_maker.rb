@@ -3,8 +3,23 @@ require 'illuminati/tab_file_parser'
 require 'illuminati/html_parser'
 
 module Illuminati
+  #
+  # Aggregates all the crap necessary to fill out the simplest of all csv files.
+  # Responsible for generating string to create Sample_Report.csv from.
+  #
   class SampleReportMaker
     DATA_NAMES = [:output, :lane, :name, :illumina, :custom, :read, :genome]
+
+    #
+    # Makes the SampleReport string. Not actually outputing it to file.
+    # Depends on FlowcellRecord, TabFileParser, and HtmlParser for most of
+    # the work required.
+    #
+    # Most of the data comes from the FlowcellRecord. Currently, the only value
+    # missing is the number of reads. This is contained either in the Demultiplex_Stats.htm
+    # file for regular lanes or TruSeq lanes and in the fastx_barcode_splitter output
+    # for custom barcoded reads... Fun stuff.
+    #
     def self.make flowcell_id
       @flowcell = FlowcellRecord.find(flowcell_id)
       demultiplex_filename = File.join(@flowcell.paths.unaligned_stats_dir, "Demultiplex_Stats.htm")
@@ -29,6 +44,11 @@ module Illuminati
       sample_report
     end
 
+    #
+    # Returns all the data for a single sample.
+    # Deals with paired_end data, custom barcodes,
+    # Illumina indexed barcodes and non-multiplexed lanes.
+    #
     def self.data_for sample
       all_read_data = []
       sample_datas = sample.sample_report_data
@@ -46,6 +66,12 @@ module Illuminati
       all_read_data
     end
 
+    #
+    # Returns the number of reads count from the Demultiplex_Stats.htm
+    # file for a particular sample.
+    #
+    # Return value is a string. nil is returned if count cannot be found.
+    #
     def self.count_from_demultiplex_sample_data sample
       count = nil
       demultiplex_sample_data = demultiplex_data_for_sample sample, @demultiplex_data
@@ -58,6 +84,11 @@ module Illuminati
       count
     end
 
+    #
+    # Returns count value from custom barcode output for a particular sample.
+    # Return value is a string. nil is returned if count cannot be found or
+    # if no custom barcodde output file is present.
+    #
     def self.count_from_custom_barcode sample
       barcode_filename = @flowcell.paths.custom_barcode_path_out(sample.lane.to_i)
       if File.exists? barcode_filename
@@ -73,6 +104,10 @@ module Illuminati
       count
     end
 
+    #
+    # Returns the barcode data for a particular sample from
+    # all possible barcode data. Used by custom barcode count finder.
+    #
     def self.barcode_data_for_sample sample, barcoded_data
       barcoded_data.each do |barcode_line|
         if barcode_line["Barcode"] == sample.custom_barcode
@@ -82,6 +117,10 @@ module Illuminati
       nil
     end
 
+    #
+    # Returns data from Demultiplex_Stats.htm for a particular sample.
+    # Sample matching is done using the Sample ID.
+    #
     def self.demultiplex_data_for_sample sample, demultiplex_data
       demultiplex_data.each do |demultiplex_sample|
         if demultiplex_sample["Sample ID"] == sample.id
