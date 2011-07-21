@@ -10,13 +10,36 @@ FILTER_SCRIPT = File.join(BASE_BIN_DIR, "fastq_filter.rb")
 TEST = false
 
 module Illuminati
+  #
+  # Small class to wrap the process of getting distribution data from LIMS system
+  #
   class DistributionData
+    #
+    # Performs the LIMS query using the external perl script.
+    # Returns raw results broken up by tabs into an array.
+    #
     def self.query_ngslims flowcell_id
       query_results = %x[perl #{SCRIPT_PATH}/ngsquery.pl fc_postRunArgs #{flowcell_id}]
       query_results.force_encoding("iso-8859-1")
       query_results.split("\t")
     end
 
+    #
+    # Main interface. Returns distribution data for a given
+    # flowcell id. Distribution data is an array of hashes. Each
+    # hash has two keys:
+    #
+    #   :lane - the lane number to distribute.
+    #   :path - the location of the project directory to distribute to.
+    #
+    # So if there are multiple lanes for one project directory, there will be
+    # multiple entries in the distribution data for that project directory,
+    # each with a different lane.
+    #
+    # If there is an error, an empty array should be returned. This will prevent
+    # the rest of the system from dying, but will indicate to not distribute to
+    # any project directory.
+    #
     def self.distributions_for flowcell_id
       raw_data = query_ngslims flowcell_id
       distribution_data = []
@@ -38,21 +61,63 @@ module Illuminati
 end
 
 module Illuminati
+  #
+  # The most complicated and least well implemented of the Illuminati classes.
+  # PostRunner is executed after the alignment step has completed. It Performs all the
+  # steps necessary to convert the output of CASAVA into output we want to use and
+  # ship that output to the proper places. Here's some of what PostRunner does:
+  #
+  # * Rename fastq.gz files
+  # * Filter fastq.gz files
+  # * Split lanes with custom barcodes
+  # * Run fastqc on fastq.gz files
+  # * Create Sample_Report.csv
+  # * Distribute fastq.gz files to project directories
+  # * Distribute qc / stats data to project directories
+  # * Distribute qc / stats data to qcdata directory
+  # * Rename export files
+  # * Distribute export files to project directories
+  #
+  # So there is a lot going down here. It uses Flowcell path data extensively for
+  # determining what goes where. It also uses another class to get distribution data which
+  # pulls this info from LIMS.
+  #
+  # The run method is the main starting point that kicks off all the rest of the process.
+  # When done, the primary analysis pipeline should be considered complete.
+  #
   class PostRunner
     attr_reader :flowcell
     attr_accessor :test
 
+    #
+    # New PostRunner instance
+    #
+    # == Parameters:
+    # flowcell::
+    #   Flowcell data instance. Passed in to help with testing.
+    # test::
+    #   If true, system commands will be printed but not executed.
+    #
     def initialize flowcell, test = false
       @flowcell = flowcell
       @test = test
       @post_run_script = nil
     end
 
+    #
+    # Helper method that executes a given string on the command line.
+    # This should be used instead of calling system directly, as it also
+    # deals with if we are in test mode or not.
+    #
     def execute command
       log command
       system(command) unless @test
     end
 
+    #
+    # Poorly named. This adds a message to the script output file.
+    # Also outputs message to standard out.
+    #
     def log message
       puts message
       if @post_run_script and !@post_run_script.closed?
@@ -60,17 +125,33 @@ module Illuminati
       end
     end
 
+    #
+    # Poorly named. Uses the logger module to output the current
+    # status of the post run process.
+    #
     def status message
       log "# #{message}"
       SolexaLogger.log(@flowcell.id, message) unless @test
     end
 
+    #
+    # Helper method to print a title section in the
+    # post run output
+    #
     def title message
       log "#########################"
       log "## #{message}"
       log "#########################"
     end
 
+    #
+    # Returns boolean if all files input exist.
+    # Also logs missing files using log method
+    #
+    # == Parameters:
+    # files::
+    #   Array of file paths
+    #
     def check_exists files
       files = [files].flatten
       rtn = true
@@ -83,6 +164,10 @@ module Illuminati
       rtn
     end
 
+    #
+    # Startup tasks to begin post run.
+    # Should be called by run, but not directly.
+    #
     def start_flowcell
       Emailer.email "starting post run for #{@flowcell.id}" unless @test
       status "postrun start"
@@ -91,6 +176,10 @@ module Illuminati
       @post_run_script = File.new(@post_run_script_filename, 'w')
     end
 
+    #
+    # Teardown process of post run.
+    # Should not be called externally.
+    #
     def stop_flowcell
       @post_run_script.close if @post_run_script
       qc_postrun_filename = File.join(@flowcell.qc_dir, File.basename(@post_run_script_filename))
@@ -99,6 +188,10 @@ module Illuminati
       status "postrun done"
     end
 
+    #
+    # Main entry point to PostRunner. Starts post run process and executes all
+    # required steps to getting data the way we want it.
+    #
     def run
       start_flowcell
       distributions = DistributionData.distributions_for @flowcell.id
@@ -112,6 +205,10 @@ module Illuminati
       stop_flowcell
     end
 
+    #
+    # Executes commands related to fastq.gz files including
+    # filtering them and distributing them.
+    #
     def run_unaligned distributions
       status "processing unaligned"
       fastq_groups = group_fastq_files(@flowcell.unaligned_project_dir,
@@ -128,6 +225,10 @@ module Illuminati
       distribute_files(custom_barcode_files, distributions) unless custom_barcode_files.empty?
     end
 
+    #
+    # Executes commands related to export files, including renaming them
+    # and distributing them to project directories.
+    #
     def run_aligned distributions
       status "processing export files"
       export_groups = group_export_files(@flowcell.aligned_project_dir,
@@ -141,6 +242,11 @@ module Illuminati
       distribute_aligned_stats_files distributions
     end
 
+    #
+    # Executes commands related to qc processes on fastq files.
+    # This means running fastqc and distributing the results to
+    # project directories.
+    #
     def run_unaligned_qc distributions
       status "running fastqc"
       run_fastqc @flowcell.fastq_filter_dir
@@ -149,6 +255,11 @@ module Illuminati
       distribute_to_unique distributions, @flowcell.fastqc_dir
     end
 
+    #
+    # Executes all functionality related to splitting lanes with customm
+    # barcodes into separate fastq.gz files. Should be executed before
+    # running fastqc to get separate results for each barcoded sample.
+    #
     def split_custom_barcodes groups
       custom_barcode_data = []
       groups.each do |sample_data|
@@ -190,6 +301,10 @@ module Illuminati
       custom_barcode_data
     end
 
+    #
+    # Collects and distributes all the files needed to go to the qcdata
+    # directory.
+    #
     def distribute_to_qcdata
       status "distributing to qcdata"
       execute "mkdir -p #{@flowcell.qc_dir}"
@@ -202,6 +317,9 @@ module Illuminati
       distribute_to_unique distribution, @flowcell.fastqc_dir
     end
 
+    #
+    # Collects the stats files needed and distributes them
+    #
     def distribute_aligned_stats_files distribution
       new_stats_dir_path = File.join(@flowcell.aligned_dir, "Summary_Stats_#{@flowcell.id}")
       execute "mkdir -p #{new_stats_dir_path}"
@@ -221,6 +339,9 @@ module Illuminati
       distribute_to_unique distribution, new_stats_dir_path
     end
 
+    #
+    # Helper method to copy files from one location to another
+    #
     def copy_files file_paths, destination_path
       files = [file_paths].flatten
       files.each do |file_path|
@@ -228,6 +349,11 @@ module Illuminati
       end
     end
 
+    #
+    # Helper method to return an array of files that match
+    # a particular pattern and are rooted in one or more places.
+    # Both inputs are arrays, but can also be individual strings.
+    #
     def find_files_in file_matches, root_paths
       root_paths = [root_paths].flatten
       file_matches = [file_matches].flatten
@@ -243,6 +369,10 @@ module Illuminati
       returned_paths
     end
 
+    #
+    # Helper method to call wkhtmltopdf on an input file.
+    # No error checking is done.
+    #
     def convert_to_pdf input_file
       if check_exists(input_file)
         output_file = input_file.split(".")[0..-2].join(".") + ".pdf"
@@ -250,6 +380,13 @@ module Illuminati
       end
     end
 
+    #
+    # Given a set of file groups and an array of distribution paths,
+    # this method copies the appropriate files to the appropriate
+    # project directories.
+    # By appropriate, we mean that the lane in the file group matches
+    # the lane indicated in the distributions.
+    #
     def distribute_files file_groups, distributions
       distributions.each do |distribution|
         log "# Creating directory #{distribution[:path]}"
@@ -266,7 +403,12 @@ module Illuminati
       end
     end
 
-    # only distribute once to each path in distributions
+    #
+    # Given an array of distributions and an array of file paths
+    # this method copies each file in the file paths to each distribution
+    # but ensures this process only occurs once to avoid copying to the same
+    # project directory mulitiple times.
+    #
     def distribute_to_unique distributions, full_source_paths
       distributions = [distributions].flatten
       full_source_paths = [full_source_paths].flatten
@@ -295,16 +437,9 @@ module Illuminati
       end
     end
 
-    def filter_fastq_files fastq_groups, output_path
-      log "# Creating path: #{output_path}"
-      execute "mkdir -p #{output_path}"
-
-      fastq_groups.each do |group|
-        command = "zcat #{group[:path]} | #{FILTER_SCRIPT} | gzip -c > #{group[:filter_path]}"
-        execute command
-      end
-    end
-
+    #
+    # Gets grouping data for fastq.gz files
+    #
     def group_fastq_files starting_path, output_path, filter_path
       execute "mkdir -p #{output_path}"
 
@@ -318,6 +453,9 @@ module Illuminati
       fastq_groups
     end
 
+    #
+    # Gets grouping data for export files
+    #
     def group_export_files starting_path, output_path, filter_path
       execute "mkdir -p #{output_path}"
 
@@ -331,8 +469,10 @@ module Illuminati
       export_groups
     end
 
-    # runs fastqc on all relevant files in fastq_path
+    #
+    # Runs fastqc on all relevant files in fastq_path
     # output is genearted fastq_path/fastqc
+    #
     def run_fastqc fastq_path
       cwd = Dir.pwd
       if check_exists(fastq_path)
@@ -344,8 +484,10 @@ module Illuminati
       end
     end
 
-    # actually combines the related fastq files
-    # using cat
+    #
+    # Actually combines the related fastq files
+    # using cat.
+    #
     def cat_files file_groups
       file_groups.each do |group|
         check_exists(group[:paths])
@@ -357,11 +499,28 @@ module Illuminati
       end
     end
 
-    # returns an array of hashes, one for each
+    #
+    # Method to strip out reads in fastq.gz files that do not
+    # pass filter. Filtered files are copied to the :filter_path
+    # in the groups hash.
+    #
+    def filter_fastq_files fastq_groups, output_path
+      log "# Creating path: #{output_path}"
+      execute "mkdir -p #{output_path}"
+
+      fastq_groups.each do |group|
+        command = "zcat #{group[:path]} | #{FILTER_SCRIPT} | gzip -c > #{group[:filter_path]}"
+        execute command
+      end
+    end
+
+    #
+    # Returns an array of hashes, one for each
     # new combined fastq file to be created
     # Each hash will have the name of the
     # combined fastq file and an Array of
     # paths that the group contains
+    #
     def group_files file_data, output_path, filter_path, options = {:prefix => "s_", :suffix => ".fastq.gz"}
       groups = {}
       file_data.each do |data|
@@ -401,9 +560,11 @@ module Illuminati
       groups.values
     end
 
-    # returns Array of hashes for files in input
+    #
+    # Returns Array of hashes for files in input
     # Hash includes sample_name, barcode, lane,
     # basename, and full path
+    #
     def get_file_data files, suffix_pattern = "\.fastq\.gz"
       files = [files].flatten
 
