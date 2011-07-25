@@ -22,6 +22,8 @@ module Illuminati
   BASECALLS_PATH = File.join("Data", "Intensities", "BaseCalls") 
   # Relative path of Illuminati's fastq renaming directory.
   FASTQ_COMBINE_PATH = "all"
+  # Relative path of Illuminati's fastq renaming directory.
+  FASTQ_UNDETERMINED_COMBINE_PATH = "undetermined"
   # Relative path of Illuminati's export renaming directory.
   ELAND_COMBINE_PATH = "all"
   # Relative path of Illuminati's fastq filtering directory.

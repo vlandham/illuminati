@@ -85,6 +85,21 @@ module Illuminati
     end
 
     #
+    # This is where CASAVA 1.8 puts
+    # the truseq reads that don't match an index.
+    #
+    def unaligned_undetermined_dir
+      File.join(unaligned_dir, "Undetermined_indices")
+    end
+
+    #
+    # This is where Illuminati puts joined undetermined fastq files
+    #
+    def unaligned_undetermined_combine_dir
+      File.join(unaligned_dir, FASTQ_UNDETERMINED_COMBINE_PATH)
+    end
+
+    #
     # The project directory inside the unaligned directory.
     # This is where CASAVA works, and where the fastq.gz files
     # it creates are originally located.

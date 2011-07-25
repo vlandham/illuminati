@@ -223,6 +223,9 @@ module Illuminati
       status "custom barcode splitting"
       custom_barcode_files = split_custom_barcodes fastq_groups
       distribute_files(custom_barcode_files, distributions) unless custom_barcode_files.empty?
+
+      status "running undetermined unaligned fastq.gz files"
+      run_undetermined_unaligned distributions
     end
 
     #
@@ -240,6 +243,15 @@ module Illuminati
       distribute_files export_groups, distributions
       status "distributing aligned stats files"
       distribute_aligned_stats_files distributions
+
+      status "creating sample_report"
+      sample_report = SampleReportMaker.make(@flowcell.id)
+      sample_report_filename = File.join(@flowcell.base_dir, "Sample_Report.csv")
+      File.open(sample_report_filename, 'w') do |file|
+        file.puts sample_report
+      end
+      status "distributing sample_report"
+      distribute_to_unique distributions, sample_report_filename
     end
 
     #
@@ -253,6 +265,8 @@ module Illuminati
 
       status "distributing fastqc directory"
       distribute_to_unique distributions, @flowcell.fastqc_dir
+
+
     end
 
     #
@@ -437,19 +451,33 @@ module Illuminati
       end
     end
 
+    def run_undetermined_unaligned distributions
+      starting_path = @flowcell.unaligned_undetermined_dir
+      output_path = @flowcell.unaligned_undetermined_combine_dir
+      options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => false}
+
+      fastq_file_groups = group_fastq_files starting_path, output_path, output_path, options
+      cat_files fastq_file_groups
+
+      status "distributing unaligned undetermined fastq.gz files"
+      distribute_files fastq_file_groups, distributions
+    end
+
     #
     # Gets grouping data for fastq.gz files
     #
-    def group_fastq_files starting_path, output_path, filter_path
+    def group_fastq_files starting_path, output_path, filter_path, options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => true}
       execute "mkdir -p #{output_path}"
+      fastq_groups = []
 
       fastq_files = Dir.glob(File.join(starting_path, "**", "*.fastq.gz"))
-      raise "ERROR: no fastq files found in #{starting_path}" if fastq_files.empty?
-      log "# #{fastq_files.size} fastq files found in #{starting_path}"
-
-      fastq_file_data = get_file_data fastq_files, "\.fastq\.gz"
-
-      fastq_groups = group_files fastq_file_data, output_path, filter_path
+      if fastq_files.empty?
+        log "# ERROR: no fastq files found in #{starting_path}" if fastq_files.empty?
+      else
+        log "# #{fastq_files.size} fastq files found in #{starting_path}"
+        fastq_file_data = get_file_data fastq_files, "\.fastq\.gz"
+        fastq_groups = group_files fastq_file_data, output_path, filter_path, options
+      end
       fastq_groups
     end
 
@@ -464,7 +492,7 @@ module Illuminati
       log "# #{export_files.size} export files found in #{starting_path}"
 
       export_file_data = get_file_data export_files, "_export\.txt\.gz"
-      options = {:prefix => "s_", :suffix => "_export.txt.gz"}
+      options = {:prefix => "s_", :suffix => "_export.txt.gz", :exclude_undetermined => true}
       export_groups = group_files export_file_data, output_path, filter_path, options
       export_groups
     end
@@ -521,15 +549,16 @@ module Illuminati
     # combined fastq file and an Array of
     # paths that the group contains
     #
-    def group_files file_data, output_path, filter_path, options = {:prefix => "s_", :suffix => ".fastq.gz"}
+    def group_files file_data, output_path, filter_path, options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => true}
       groups = {}
       file_data.each do |data|
-        if data[:barcode] == "Undetermined"
+        if data[:barcode] == "Undetermined" and options[:exclude_undetermined]
           log "# Undetermined sample lane: #{data[:lane]} - name: #{data[:sample_name]}. Skipping"
           next
         end
 
-        group_key = "#{options[:prefix]}#{data[:lane]}_#{data[:read]}_#{data[:barcode]}#{options[:suffix]}"
+        group_key = name_for_data data, options
+
         if groups.include? group_key
           if groups[group_key][:sample_name] != data[:sample_name]
             raise "ERROR: sample names not matching #{group_key} - #{data[:path]}"
@@ -558,6 +587,10 @@ module Illuminati
         group[:paths] = group[:files].collect {|data| data[:path]}
       end
       groups.values
+    end
+
+    def name_for_data data, options = {:prefix => "s_", :suffix => ".fastq.gz"}
+      "#{options[:prefix]}#{data[:lane]}_#{data[:read]}_#{data[:barcode]}#{options[:suffix]}"
     end
 
     #
