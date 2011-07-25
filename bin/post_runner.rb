@@ -131,7 +131,7 @@ module Illuminati
     #
     def status message
       log "# #{message}"
-      SolexaLogger.log(@flowcell.id, message) unless @test
+      SolexaLogger.log(@flowcell.paths.id, message) unless @test
     end
 
     #
@@ -169,10 +169,10 @@ module Illuminati
     # Should be called by run, but not directly.
     #
     def start_flowcell
-      Emailer.email "starting post run for #{@flowcell.id}" unless @test
+      Emailer.email "starting post run for #{@flowcell.paths.id}" unless @test
       status "postrun start"
 
-      @post_run_script_filename = File.join(@flowcell.base_dir, "postrun_#{@flowcell.id}.sh")
+      @post_run_script_filename = File.join(@flowcell.paths.base_dir, "postrun_#{@flowcell.paths.id}.sh")
       @post_run_script = File.new(@post_run_script_filename, 'w')
     end
 
@@ -182,9 +182,9 @@ module Illuminati
     #
     def stop_flowcell
       @post_run_script.close if @post_run_script
-      qc_postrun_filename = File.join(@flowcell.qc_dir, File.basename(@post_run_script_filename))
+      qc_postrun_filename = File.join(@flowcell.paths.qc_dir, File.basename(@post_run_script_filename))
       execute "cp #{@post_run_script_filename} #{qc_postrun_filename}"
-      Emailer.email "post run complete for #{@flowcell.id}" unless @test
+      Emailer.email "post run complete for #{@flowcell.paths.id}" unless @test
       status "postrun done"
     end
 
@@ -194,7 +194,7 @@ module Illuminati
     #
     def run
       start_flowcell
-      distributions = DistributionData.distributions_for @flowcell.id
+      distributions = DistributionData.distributions_for @flowcell.paths.id
 
       run_unaligned distributions
       run_unaligned_qc distributions
@@ -211,11 +211,11 @@ module Illuminati
     #
     def run_unaligned distributions
       status "processing unaligned"
-      fastq_groups = group_fastq_files(@flowcell.unaligned_project_dir,
-                                       @flowcell.fastq_combine_dir,
-                                       @flowcell.fastq_filter_dir)
+      fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
+                                       @flowcell.paths.fastq_combine_dir,
+                                       @flowcell.paths.fastq_filter_dir)
       cat_files fastq_groups
-      filter_fastq_files fastq_groups, @flowcell.fastq_filter_dir
+      filter_fastq_files fastq_groups, @flowcell.paths.fastq_filter_dir
 
       status "distributing unaligned fastq.gz files"
       distribute_files fastq_groups, distributions
@@ -234,9 +234,9 @@ module Illuminati
     #
     def run_aligned distributions
       status "processing export files"
-      export_groups = group_export_files(@flowcell.aligned_project_dir,
-                                         @flowcell.eland_combine_dir,
-                                         @flowcell.eland_combine_dir)
+      export_groups = group_export_files(@flowcell.paths.aligned_project_dir,
+                                         @flowcell.paths.eland_combine_dir,
+                                         @flowcell.paths.eland_combine_dir)
       cat_files export_groups
 
       status "distributing export files"
@@ -245,8 +245,8 @@ module Illuminati
       distribute_aligned_stats_files distributions
 
       status "creating sample_report"
-      sample_report = SampleReportMaker.make(@flowcell.id)
-      sample_report_filename = File.join(@flowcell.base_dir, "Sample_Report.csv")
+      sample_report = SampleReportMaker.make(@flowcell)
+      sample_report_filename = File.join(@flowcell.paths.base_dir, "Sample_Report.csv")
       File.open(sample_report_filename, 'w') do |file|
         file.puts sample_report
       end
@@ -261,10 +261,10 @@ module Illuminati
     #
     def run_unaligned_qc distributions
       status "running fastqc"
-      run_fastqc @flowcell.fastq_filter_dir
+      run_fastqc @flowcell.paths.fastq_filter_dir
 
       status "distributing fastqc directory"
-      distribute_to_unique distributions, @flowcell.fastqc_dir
+      distribute_to_unique distributions, @flowcell.paths.fastqc_dir
 
 
     end
@@ -277,7 +277,7 @@ module Illuminati
     def split_custom_barcodes groups
       custom_barcode_data = []
       groups.each do |sample_data|
-        barcode_file_path = @flowcell.custom_barcode_path(sample_data[:lane])
+        barcode_file_path = @flowcell.paths.custom_barcode_path(sample_data[:lane])
         if File.exists?(barcode_file_path)
           orginal_fastq_path = sample_data[:filter_path]
           fastq_base_dir = File.dirname(orginal_fastq_path)
@@ -288,7 +288,7 @@ module Illuminati
           command += " fastx_barcode_splitter.pl --bcfile #{barcode_file_path}"
           command += " --bol --prefix \"#{file_prefix}\""
           command += " --suffix \"#{file_suffix}\""
-          command += " > #{@flowcell.custom_barcode_path_out(sample_data[:lane])} 2>&1"
+          command += " > #{@flowcell.paths.custom_barcode_path_out(sample_data[:lane])} 2>&1"
           execute command
 
           unmatched = Dir.glob("#{file_prefix}unmatched#{file_suffix}")
@@ -321,33 +321,33 @@ module Illuminati
     #
     def distribute_to_qcdata
       status "distributing to qcdata"
-      execute "mkdir -p #{@flowcell.qc_dir}"
-      distribution = {:path => @flowcell.qc_dir}
+      execute "mkdir -p #{@flowcell.paths.qc_dir}"
+      distribution = {:path => @flowcell.paths.qc_dir}
       qc_files = ["InterOp", "RunInfo.xml", "Events.log", "Data/reports"]
-      qc_paths = qc_files.collect {|qc_file| File.join(@flowcell.base_dir, qc_file)}
+      qc_paths = qc_files.collect {|qc_file| File.join(@flowcell.paths.base_dir, qc_file)}
       distribute_to_unique distribution, qc_paths
-      distribute_to_unique distribution, @flowcell.unaligned_stats_dir
+      distribute_to_unique distribution, @flowcell.paths.unaligned_stats_dir
       distribute_aligned_stats_files distribution
-      distribute_to_unique distribution, @flowcell.fastqc_dir
+      distribute_to_unique distribution, @flowcell.paths.fastqc_dir
     end
 
     #
     # Collects the stats files needed and distributes them
     #
     def distribute_aligned_stats_files distribution
-      new_stats_dir_path = File.join(@flowcell.aligned_dir, "Summary_Stats_#{@flowcell.id}")
+      new_stats_dir_path = File.join(@flowcell.paths.aligned_dir, "Summary_Stats_#{@flowcell.paths.id}")
       execute "mkdir -p #{new_stats_dir_path}"
 
-      ivc_file = File.join(@flowcell.unaligned_stats_dir, "IVC.htm")
+      ivc_file = File.join(@flowcell.paths.unaligned_stats_dir, "IVC.htm")
       convert_to_pdf ivc_file
-      ivc_pdf = find_files_in "IVC.pdf", @flowcell.unaligned_stats_dir
+      ivc_pdf = find_files_in "IVC.pdf", @flowcell.paths.unaligned_stats_dir
       copy_files ivc_pdf, new_stats_dir_path
 
-      demultiplex_stats_file = find_files_in "Demultiplex_Stats.htm", @flowcell.unaligned_stats_dir
+      demultiplex_stats_file = find_files_in "Demultiplex_Stats.htm", @flowcell.paths.unaligned_stats_dir
       copy_files demultiplex_stats_file, new_stats_dir_path
 
       stats_files = ["Barcode_Lane_Summary.htm", "Sample_Summary.htm"]
-      summary_files = find_files_in(stats_files, @flowcell.aligned_stats_dir)
+      summary_files = find_files_in(stats_files, @flowcell.paths.aligned_stats_dir)
       copy_files summary_files, new_stats_dir_path
 
       distribute_to_unique distribution, new_stats_dir_path
@@ -452,8 +452,8 @@ module Illuminati
     end
 
     def run_undetermined_unaligned distributions
-      starting_path = @flowcell.unaligned_undetermined_dir
-      output_path = @flowcell.unaligned_undetermined_combine_dir
+      starting_path = @flowcell.paths.unaligned_undetermined_dir
+      output_path = @flowcell.paths.unaligned_undetermined_combine_dir
       options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => false}
 
       fastq_file_groups = group_fastq_files starting_path, output_path, output_path, options
@@ -626,7 +626,8 @@ end
 if __FILE__ == $0
   flowcell_id = ARGV[0]
   if flowcell_id
-    flowcell = Illuminati::FlowcellData.new flowcell_id, TEST
+    paths = Illuminati::FlowcellData.new flowcell_id, TEST
+    flowcell = Illuminati::FlowcellRecord.find flowcell_id, paths
     runner = Illuminati::PostRunner.new flowcell, TEST
     runner.run
   else

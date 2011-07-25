@@ -20,8 +20,8 @@ module Illuminati
     # file for regular lanes or TruSeq lanes and in the fastx_barcode_splitter output
     # for custom barcoded reads... Fun stuff.
     #
-    def self.make flowcell_id
-      @flowcell = FlowcellRecord.find(flowcell_id)
+    def self.make flowcell
+      @flowcell = flowcell
       demultiplex_filename = File.join(@flowcell.paths.unaligned_stats_dir, "Demultiplex_Stats.htm")
       html_parser = HtmlParser.new
       @demultiplex_data = html_parser.table_data(demultiplex_filename)[0]

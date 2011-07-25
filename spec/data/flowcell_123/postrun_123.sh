@@ -7,6 +7,11 @@ mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter
 zcat /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/all/s_1_1_NoIndex.fastq.gz | /solexa/bin/illuminati/bin/fastq_filter.rb | gzip -c > /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter/s_1_1_NoIndex.fastq.gz
 # distributing unaligned fastq.gz files
 # custom barcode splitting
+# running undetermined unaligned fastq.gz files
+mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/undetermined
+# 1 fastq files found in /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Undetermined_indices
+cat /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Undetermined_indices/Sample_lane_2/lane2_Undetermined_L002_R1_001.fastq.gz > /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/undetermined/s_2_1_Undetermined.fastq.gz
+# distributing unaligned undetermined fastq.gz files
 # running fastqc
 cd /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter; /solexa/bin/scripts/fastqc.pl -v --files "*.fastq.gz"
 cd /solexa/bin/illuminati
@@ -24,6 +29,8 @@ cp /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Basecall_Stats_123/De
 cp /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Project_123/Summary_Stats_FC/Barcode_Lane_Summary.htm /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
 cp /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Project_123/Summary_Stats_FC/Sample_Summary.htm /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123
 # Error: file not found:/solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Summary_Stats_123.
+# creating sample_report
+# distributing sample_report
 # distributing to qcdata
 mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
 mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123

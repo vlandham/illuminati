@@ -3,7 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 require 'post_runner'
 
 class FakeFlowcell
-  attr_accessor :base_dir, :unaligned_dir, :id, :qc_dir, :unaligned_stats_dir, :aligned_dir, :aligned_stats_dir, :fastqc_dir, :unaligned_project_dir, :aligned_project_dir, :fastq_combine_dir, :fastq_filter_dir, :eland_combine_dir
+  attr_accessor :base_dir, :unaligned_dir, :id, :qc_dir, :unaligned_stats_dir, :aligned_dir, :aligned_stats_dir, :fastqc_dir, :unaligned_project_dir, :aligned_project_dir, :fastq_combine_dir, :fastq_filter_dir, :eland_combine_dir, :unaligned_undetermined_dir, :unaligned_undetermined_combine_dir
 
 
 
@@ -21,6 +21,8 @@ class FakeFlowcell
     @fastq_combine_dir = File.join(@unaligned_dir, 'all')
     @fastq_filter_dir = File.join(@unaligned_dir, 'filter')
     @eland_combine_dir = File.join(@aligned_dir, 'all')
+    @unaligned_undetermined_dir = File.join(@unaligned_dir, 'Undetermined_indices')
+    @unaligned_undetermined_combine_dir = File.join(@unaligned_dir, 'undetermined')
   end
 
   def custom_barcode_path lane
@@ -30,7 +32,8 @@ end
 
 describe Illuminati::PostRunner do
   before(:each) do
-    @flowcell = FakeFlowcell.new
+    @paths = FakeFlowcell.new
+    @flowcell = Illuminati::FlowcellRecord.find @paths.id, @paths
     @runner = Illuminati::PostRunner.new @flowcell
     @runner.test = true
   end
@@ -52,7 +55,7 @@ describe Illuminati::PostRunner do
   end
 
   it "should check if file is missing" do
-    files = Dir.glob(@flowcell.base_dir + "/*")
+    files = Dir.glob(@flowcell.paths.base_dir + "/*")
     files.size.should_not == 0
     out = capture(:stdout) {@runner.check_exists(files)}
     out.empty?.should == true
