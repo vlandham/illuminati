@@ -3,7 +3,7 @@ module Illuminati
   #TODO: all these should be in a config file
   #
   # Location of CASAVA 1.8's bin directory
-  CASAVA_PATH = "/home/solexa/CASAVA_1.8.0/bin"
+  CASAVA_PATH = "/home/solexa/CASAVA_1.8.1/bin"
   # List emailer uses to email out messages.
   EMAIL_LIST = ["jfv@stowers.org"]
   # Path to put quality control files in.
