@@ -19,7 +19,7 @@ module Illuminati
 
 
   # Relative path of the Basecalls directory
-  BASECALLS_PATH = File.join("Data", "Intensities", "BaseCalls") 
+  BASECALLS_PATH = File.join("Data", "Intensities", "BaseCalls")
   # Relative path of Illuminati's fastq renaming directory.
   FASTQ_COMBINE_PATH = "all"
   # Relative path of Illuminati's fastq renaming directory.
@@ -34,4 +34,12 @@ module Illuminati
   FASTQ_STATS_PATTERN = "Basecall_Stats_*"
   # Pattern to use when searching for the aligned stats directory.
   ELAND_STATS_PATTERN = "Summary_Stats_*"
+end
+
+module Illuminati
+  class Paths
+    def self.base
+      FLOWCELL_PATH_BASE
+    end
+  end
 end

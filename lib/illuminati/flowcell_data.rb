@@ -8,7 +8,7 @@ module Illuminati
   # in FlowcellRecord. This class really focuses on paths.
   #
   class FlowcellData
-    attr_reader :flowcell_id
+    attr_reader :flowcell_id, :test, :paths
     alias :id :flowcell_id
 
     #
@@ -20,9 +20,10 @@ module Illuminati
     #
     # testing::
     #   If true, exceptions will not be raised for missing critical files / folders.
-    def initialize flowcell_id, testing = false
+    def initialize flowcell_id, testing = false, paths = Paths
       @flowcell_id = flowcell_id
       @test = testing
+      @paths = paths
     end
 
     def to_h
@@ -41,7 +42,7 @@ module Illuminati
     # This means for us that it is the /solexa/*[FLOWCELL_ID] path.
     #
     def base_dir
-      path = File.join(FLOWCELL_PATH_BASE, "*#{@flowcell_id}")
+      path = File.join(@paths.base, "*#{@flowcell_id}")
       paths = Dir.glob(path)
       if paths.size < 1
         puts "ERROR: no flowcell directory found for #{@flowcell_id}"
