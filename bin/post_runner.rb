@@ -241,17 +241,24 @@ module Illuminati
 
       status "distributing export files"
       distribute_files export_groups, distributions
-      status "distributing aligned stats files"
-      distribute_aligned_stats_files distributions
+      create_custom_stats_files
+      distribute_custom_stats_files distributions
 
+      create_sample_report
+      distribute_sample_report distributions
+    end
+
+    def create_sample_report
       status "creating sample_report"
       sample_report = SampleReportMaker.make(@flowcell)
-      sample_report_filename = File.join(@flowcell.paths.base_dir, "Sample_Report.csv")
-      File.open(sample_report_filename, 'w') do |file|
+      File.open(@flowcell.paths.sample_report_path, 'w') do |file|
         file.puts sample_report
       end
+    end
+
+    def distribute_sample_report distributions
       status "distributing sample_report"
-      distribute_to_unique distributions, sample_report_filename
+      distribute_to_unique distributions, @flowcell.paths.sample_report_path
     end
 
     #
@@ -327,15 +334,16 @@ module Illuminati
       qc_paths = qc_files.collect {|qc_file| File.join(@flowcell.paths.base_dir, qc_file)}
       distribute_to_unique distribution, qc_paths
       distribute_to_unique distribution, @flowcell.paths.unaligned_stats_dir
-      distribute_aligned_stats_files distribution
+      distribute_custom_stats_files distribution
       distribute_to_unique distribution, @flowcell.paths.fastqc_dir
+      distribute_sample_report distribution
     end
 
     #
     # Collects the stats files needed and distributes them
     #
-    def distribute_aligned_stats_files distribution
-      new_stats_dir_path = File.join(@flowcell.paths.aligned_dir, "Summary_Stats_#{@flowcell.paths.id}")
+    def create_custom_stats_files
+      new_stats_dir_path = @flowcell.paths.custom_stats_dir
       execute "mkdir -p #{new_stats_dir_path}"
 
       ivc_file = File.join(@flowcell.paths.unaligned_stats_dir, "IVC.htm")
@@ -349,8 +357,11 @@ module Illuminati
       stats_files = ["Barcode_Lane_Summary.htm", "Sample_Summary.htm"]
       summary_files = find_files_in(stats_files, @flowcell.paths.aligned_stats_dir)
       copy_files summary_files, new_stats_dir_path
+    end
 
-      distribute_to_unique distribution, new_stats_dir_path
+    def distribute_custom_stats_files distribution
+      status "distributing aligned stats files"
+      distribute_to_unique distribution, @flowcell.paths.custom_stats_dir
     end
 
     #
