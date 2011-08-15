@@ -1,4 +1,6 @@
 
+require 'illuminati/external_data_base'
+
 module Illuminati
   #
   # Provides an interface for a very limit set of queries on the LIMS system.
@@ -7,9 +9,10 @@ module Illuminati
   # Current LIMS system works at the lane level, so data concerning lanes with multiple samples
   # is not captured. This is the reason SampleMulitplex.csv is used. to suppliment LIMS data.
   #
-  class LimsAdapter
+  class ExternalDataLims < ExternalDataBase
     # Specific data that is acquired from LIMS for a lane.
     LANE_DATA = [:flowcell, :lane, :genome, :name, :samples, :lab, :unknown, :cycles, :type, :protocol]
+    LANE_DATA_CLEAN = [:flowcell, :lane, :genome, :name, :cycles, :protocol, :bases]
 
     # Input of organism in LIMS is unrestricted text. This is a mapping of all known names
     # that have been used in the LIMS in the past to the name we need for alignment.
@@ -29,6 +32,9 @@ module Illuminati
       "pombe_9-2010" => [/.*[P|p]ombe.*/]
     }
 
+    def initialize
+    end
+
     #
     # Internal interface to LIMS system. Unfortunately, this depends on an external
     # perl script for historical reasons.
@@ -45,7 +51,7 @@ module Illuminati
     # that have been split using the tab character. This is how the output of the
     # LIMS and the perl script look, so we will just use it as is.
     #
-    def self.query command, flowcell_id
+    def query command, flowcell_id
       query_results = %x[perl #{SCRIPT_PATH}/ngsquery.pl #{command} #{flowcell_id}]
       query_results.force_encoding("iso-8859-1")
       rows = query_results.split("\n")
@@ -71,7 +77,7 @@ module Illuminati
     # bases option for CASAVA 1.8 config.txt files. This should probably
     # be moved to the config.txt file maker.
     #
-    def self.lanes flowcell_id
+    def lane_data_for flowcell_id
       raw_lanes = query("fc_lane_library_samples", flowcell_id)
       lanes = Array.new
       raw_lanes.each do |raw_lane|
@@ -95,18 +101,22 @@ module Illuminati
     # == Returns:
     # Same hash with contents ready to be used external fo the adapter.
     #
-    def self.clean_lane lane_data
+    def clean_lane lane_data
       lane_data[:genome] = translate_organism(lane_data[:genome])
       lane_data[:protocol] = translate_protocol(lane_data[:protocol])
       lane_data[:bases] = get_bases(lane_data[:protocol])
-      lane_data
+      clean_lane_data = {}
+      LANE_DATA_CLEAN.each do |clean_header|
+        clean_lane_data[clean_header] = lane_data[clean_header]
+      end
+      clean_lane_data
     end
 
     #
     # Cleans the protocol field from the LIMS system so that it only can
     # contain "eland_pair" or "eland_extended"
     #
-    def self.translate_protocol raw_protocol
+    def translate_protocol raw_protocol
       raw_protocol.downcase =~ /.*pair.*/ ? "eland_pair" : "eland_extended"
     end
 
@@ -114,7 +124,7 @@ module Illuminati
     # Returns string representing the bases to read to be used in config.txt
     # file. Deals with paired vs single-ended reads.
     #
-    def self.get_bases protocol
+    def get_bases protocol
       protocol == "eland_pair" ? "Y*,Y*" : "Y*"
     end
 
@@ -123,7 +133,7 @@ module Illuminati
     # that can be used to specify reference genome in Illuminati.
     # Prints error message if conversion cannot be done.
     #
-    def self.translate_organism raw_organism
+    def translate_organism raw_organism
       new_type = raw_organism
       matched = false
       CONVERSIONS.each do |valid_name, matches|
@@ -138,6 +148,50 @@ module Illuminati
       end
       puts "ERROR: #{new_type} not in conversions table" unless matched
       new_type
+    end
+
+    #
+    # Performs the LIMS query using the external perl script.
+    # Returns raw results broken up by tabs into an array.
+    #
+    def distribution_query flowcell_id
+      query_results = %x[perl #{SCRIPT_PATH}/ngsquery.pl fc_postRunArgs #{flowcell_id}]
+      query_results.force_encoding("iso-8859-1")
+      query_results.split("\t")
+    end
+
+    #
+    # Main interface. Returns distribution data for a given
+    # flowcell id. Distribution data is an array of hashes. Each
+    # hash has two keys:
+    #
+    #   :lane - the lane number to distribute.
+    #   :path - the location of the project directory to distribute to.
+    #
+    # So if there are multiple lanes for one project directory, there will be
+    # multiple entries in the distribution data for that project directory,
+    # each with a different lane.
+    #
+    # If there is an error, an empty array should be returned. This will prevent
+    # the rest of the system from dying, but will indicate to not distribute to
+    # any project directory.
+    #
+    def distributions_for flowcell_id
+      raw_data = distribution_query flowcell_id
+      distribution_data = []
+
+      if raw_data.size >= 2
+        distribution_paths = raw_data[0].split(":")
+        distribution_lane_sets = raw_data[1].split(":")
+        distribution_lane_sets.each_with_index do |lane_set, index|
+          lanes = lane_set.split(",")
+          lanes.each do |lane|
+            dist = {:lane => lane.to_i, :path => distribution_paths[index]}
+            distribution_data << dist
+          end
+        end
+      end
+      distribution_data
     end
   end
 end

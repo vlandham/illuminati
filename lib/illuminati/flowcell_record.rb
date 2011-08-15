@@ -1,7 +1,8 @@
 require 'yaml'
 require 'illuminati/flowcell_data'
 require 'illuminati/sample_multiplex'
-require 'illuminati/lims_adapter'
+require 'illuminati/external_data_adapter'
+require 'illuminati/external_data_base'
 require 'illuminati/views'
 
 module Illuminati
@@ -9,7 +10,7 @@ module Illuminati
   # Contains all info from LIMS and SampleMultiplex.csv concerning an individual sample.
   #
   class Sample
-    LIMS_DATA = [:lane, :genome, :name, :samples, :cycles, :type, :protocol, :bases]
+    LIMS_DATA = [:lane, :genome, :name, :cycles, :protocol, :bases]
     attr_accessor *LIMS_DATA
 
     attr_accessor :barcode, :barcode_type
@@ -298,7 +299,7 @@ module Illuminati
   # multiplex data from SampleMultiplex.csv
   #
   class FlowcellRecord
-    attr_accessor :id, :lanes, :paths, :multiplex
+    attr_accessor :id, :lanes, :paths, :multiplex, :external_data
 
     #
     # Finds flowcell for particular ID and populates its fields.
@@ -316,14 +317,13 @@ module Illuminati
     # == Returns:
     # Populated FlowcellRecord ready for action.
     #
-    def self.find flowcell_id, paths = FlowcellData.new(flowcell_id)
+    def self.find flowcell_id, paths = FlowcellData.new(flowcell_id), external_data = ExternalDataLims.new
       flowcell = FlowcellRecord.new(flowcell_id)
-      flowcell.paths = paths
       flowcell.id = flowcell_id
+      flowcell.paths = paths
 
-      lims_lane_data = LimsAdapter.lanes(flowcell_id)
-      flowcell.multiplex = SampleMultiplex.find(paths.base_dir)
-      flowcell.add_lanes lims_lane_data, flowcell.multiplex
+
+      flowcell.get_data
 
       flowcell
     end
@@ -331,6 +331,14 @@ module Illuminati
     def initialize flowcell_id
       self.id = flowcell_id
       self.lanes = []
+    end
+
+    def get_data
+      self.external_data = ExternalDataAdapter.find(self.paths.base_dir)
+      self.multiplex = SampleMultiplex.find(self.paths.base_dir)
+
+      lims_lane_data = self.external_data.lane_data_for self.id
+      self.add_lanes lims_lane_data, self.multiplex
     end
 
     def add_lanes lims_lane_data, multiplex_data

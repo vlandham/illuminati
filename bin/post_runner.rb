@@ -11,57 +11,6 @@ TEST = false
 
 module Illuminati
   #
-  # Small class to wrap the process of getting distribution data from LIMS system
-  #
-  class DistributionData
-    #
-    # Performs the LIMS query using the external perl script.
-    # Returns raw results broken up by tabs into an array.
-    #
-    def self.query_ngslims flowcell_id
-      query_results = %x[perl #{SCRIPT_PATH}/ngsquery.pl fc_postRunArgs #{flowcell_id}]
-      query_results.force_encoding("iso-8859-1")
-      query_results.split("\t")
-    end
-
-    #
-    # Main interface. Returns distribution data for a given
-    # flowcell id. Distribution data is an array of hashes. Each
-    # hash has two keys:
-    #
-    #   :lane - the lane number to distribute.
-    #   :path - the location of the project directory to distribute to.
-    #
-    # So if there are multiple lanes for one project directory, there will be
-    # multiple entries in the distribution data for that project directory,
-    # each with a different lane.
-    #
-    # If there is an error, an empty array should be returned. This will prevent
-    # the rest of the system from dying, but will indicate to not distribute to
-    # any project directory.
-    #
-    def self.distributions_for flowcell_id
-      raw_data = query_ngslims flowcell_id
-      distribution_data = []
-
-      if raw_data.size >= 2
-        distribution_paths = raw_data[0].split(":")
-        distribution_lane_sets = raw_data[1].split(":")
-        distribution_lane_sets.each_with_index do |lane_set, index|
-          lanes = lane_set.split(",")
-          lanes.each do |lane|
-            dist = {:lane => lane.to_i, :path => distribution_paths[index]}
-            distribution_data << dist
-          end
-        end
-      end
-      distribution_data
-    end
-  end
-end
-
-module Illuminati
-  #
   # The most complicated and least well implemented of the Illuminati classes.
   # PostRunner is executed after the alignment step has completed. It Performs all the
   # steps necessary to convert the output of CASAVA into output we want to use and
@@ -194,7 +143,7 @@ module Illuminati
     #
     def run
       start_flowcell
-      distributions = DistributionData.distributions_for @flowcell.paths.id
+      distributions = @flowcell.external_data.distributions_for @flowcell.id
 
       run_unaligned distributions
       run_unaligned_qc distributions
