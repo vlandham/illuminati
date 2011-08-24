@@ -222,7 +222,6 @@ module Illuminati
       end
     end
 
-
     def is_sample_table? table
       !table[0]["Sample"].nil?
     end

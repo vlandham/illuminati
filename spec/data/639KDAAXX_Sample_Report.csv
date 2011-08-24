@@ -1,13 +1,13 @@
-output,lane,sample name,illumina index,custom barcode,read,reference,# reads
-s_1_1_NoIndex.fastq.gz,1,11TlSmc1,,,1,dm3,39350190
-s_2_1_NoIndex.fastq.gz,2,18TlWCE,,,1,dm3,49450862
-s_3_1_NoIndex.fastq.gz,3,2hFAIRE400,,,1,dm3,46736723
-s_4_1_NoIndex.fastq.gz,4,2hPol1,,,1,dm3,13115405
-s_5_1_NoIndex.fastq.gz,5,2hPol2,,,1,dm3,59969539
-s_6_1_GATCGTT.fastq.gz,6,OreR_WCE_2to4_3_HID2,,GATCGTT,1,dm3,20664258
-s_6_1_TCAGGTT.fastq.gz,6,OreR_WCE_2to4_FE_1_HID4,,TCAGGTT,1,dm3,1363
-s_6_1_TCCACAT.fastq.gz,6,OreR_WCE_2to4_EF_1_HID8,,TCCACAT,1,dm3,517
-s_7_1_GATCGTT.fastq.gz,7,OreR_4H8_2to4_EF_1_HID2,,GATCGTT,1,dm3,41454346
-s_7_1_TCAGGTT.fastq.gz,7,OreR_4H8_2to4_1_HID4,,TCAGGTT,1,dm3,41454346
-s_7_1_TCCACAT.fastq.gz,7,OreR_4H8_2to4_FE_1_HID8,,TCCACAT,1,dm3,41454346
-s_8_1_NoIndex.fastq.gz,8,PhiX,,,1,phiX,30502288
+output,lane,sample name,illumina index,custom barcode,read,reference,total reads,pass filter reads,pass filter percent,align percent,type,read length
+s_1_1_NoIndex.fastq.gz,1,11TlSmc1,,,1,dm3,39350190,33612932,85.42,30.46,single,40 
+s_2_1_NoIndex.fastq.gz,2,18TlWCE,,,1,dm3,49450862,38324418,77.50,68.05,single,40 
+s_3_1_NoIndex.fastq.gz,3,2hFAIRE400,,,1,dm3,46736723,37473505,80.18,67.03,single,40 
+s_4_1_NoIndex.fastq.gz,4,2hPol1,,,1,dm3,13115405,12110765,92.34,25.18,single,40 
+s_5_1_NoIndex.fastq.gz,5,2hPol2,,,1,dm3,59969539,36899257,61.53,20.42,single,40 
+s_6_1_GATCGTT.fastq.gz,6,OreR_WCE_2to4_3_HID2,,GATCGTT,1,dm3,20664258,,,,,,
+s_6_1_TCAGGTT.fastq.gz,6,OreR_WCE_2to4_FE_1_HID4,,TCAGGTT,1,dm3,1363,,,,,,
+s_6_1_TCCACAT.fastq.gz,6,OreR_WCE_2to4_EF_1_HID8,,TCCACAT,1,dm3,517,,,,,,
+s_7_1_GATCGTT.fastq.gz,7,OreR_4H8_2to4_EF_1_HID2,,GATCGTT,1,dm3,20664258,,,,,,
+s_7_1_TCAGGTT.fastq.gz,7,OreR_4H8_2to4_1_HID4,,TCAGGTT,1,dm3,1363,,,,,,
+s_7_1_TCCACAT.fastq.gz,7,OreR_4H8_2to4_FE_1_HID8,,TCCACAT,1,dm3,517,,,,,,
+s_8_1_NoIndex.fastq.gz,8,PhiX,,,1,phiX,30502288,26558342,87.07,98.81,single,40 

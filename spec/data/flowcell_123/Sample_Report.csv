@@ -1,1 +1,1 @@
-output,lane,sample name,illumina index,custom barcode,read,reference,# reads
+output,lane,sample name,illumina index,custom barcode,read,reference,total reads,pass filter reads,pass filter percent,align percent,type,read length

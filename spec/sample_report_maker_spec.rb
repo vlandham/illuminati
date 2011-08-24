@@ -23,6 +23,9 @@ describe Illuminati::SampleReportMaker do
   # will not work on local machine
   it "should make report" do
     results = Illuminati::SampleReportMaker::make @flowcell
+    #File.open('testsers','w') do |file|
+    #  file.puts results
+    #end
     example_results = data("#{@flowcell.id}_Sample_Report.csv")
     results.should == example_results
   end
