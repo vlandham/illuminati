@@ -10,6 +10,8 @@ module Illuminati
   QC_PATH = "/qcdata"
   # Location of external scripts that are needed by Illuminati.
   SCRIPT_PATH = "/solexa/bin/scripts"
+  # Location of lims query script now used
+  LIMS_SCRIPT_PATH = "/solexa/bin/scripts/remote/lims_data.pl"
   # Location where startup scripts will be placed.
   ADMIN_PATH = "/solexa/runs"
   # Location of log files.
