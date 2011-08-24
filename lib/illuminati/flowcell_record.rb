@@ -20,6 +20,7 @@ module Illuminati
     #
     def initialize
       @barcode = ""
+      @lane = @genome = @name = @protocol = ""
       @barcode_type = :none
     end
 
