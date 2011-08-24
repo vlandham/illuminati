@@ -7,6 +7,6 @@ EXPT_DIR <%= @input_dir %>
 <%= "#{lane[:lane]}:ELAND_GENOME /solexa/igenome/#{lane[:genome]}\n" %>
 <%= "#{lane[:lane]}:ANALYSIS #{lane[:protocol]}\n" %>
 <%= "#{lane[:lane]}:ELAND_MAX_MATCHES 10\n" %>
-<%= "#{lane[:lane]}:USE_BASES #{lane[:bases]}\n" %>
+<%= "#{lane[:lane]}:USE_BASES #{lane[:protocol] == "eland_pair" ? "Y*,Y*" : "Y*"}\n" %>
 <% end %>
 
