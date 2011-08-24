@@ -10,7 +10,7 @@ module Illuminati
   # Contains all info from LIMS and SampleMultiplex.csv concerning an individual sample.
   #
   class Sample
-    LIMS_DATA = [:lane, :genome, :name, :cycles, :protocol, :bases]
+    LIMS_DATA = [:lane, :genome, :name, :protocol]
     attr_accessor *LIMS_DATA
 
     attr_accessor :barcode, :barcode_type
@@ -52,7 +52,7 @@ module Illuminati
     # Used in config.txt view to combine lanes.
     #
     def lane_equal other_sample
-      [:genome, :cycles, :protocol].each do |lane_data|
+      [:genome, :protocol].each do |lane_data|
         if self.send(lane_data) != other_sample.send(lane_data)
           return false
         end
