@@ -88,8 +88,7 @@ module Illuminati
       if !demultiplex_sample_data
         puts "ERROR: sample report maker cannot find demultiplex data for #{sample.id}"
       else
-        count = demultiplex_sample_data["# Reads"]
-        count.gsub!(",","")
+        count = remove_commas(demultiplex_sample_data["# Reads"])
         data << count
         percent = demultiplex_sample_data["% PF"]
         data << percent
@@ -101,6 +100,9 @@ module Illuminati
       data
     end
 
+    #
+    #
+    #
     def self.data_from_sample_summary_data sample, read
       data = []
       sample_summary_data = sample_summary_data_for_sample sample, read
@@ -109,9 +111,18 @@ module Illuminati
       else
         data << sample_summary_data["Species"]
         percent_align = sample_summary_data["% Align (PF)"]
-
+        data << percent_align
+        data << sample_summary_data["Analysis Type"]
+        data << sample_summary_data["Length"]
       end
       data
+    end
+
+    #
+    #
+    #
+    def self.remove_commas(value)
+      value.gsub(",","") if value
     end
 
     #
