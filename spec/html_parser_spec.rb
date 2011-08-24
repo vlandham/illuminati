@@ -60,9 +60,11 @@ describe Illuminati::HtmlParser do
     end
 
     it "should parse tables" do
-      doc = @parser.parse_file(@sample_summary_filename)
-      table_data = @parser.parse_tables(doc)
+      table_data = @parser.table_data(@sample_summary_filename)
       table_data.size.should == 6
+      table_data[1].size.should == 8
+      table_data[1][0]["Sample"].should == "1"
+      table_data[1][-1]["Sample"].should == "8"
     end
   end
 
