@@ -9,7 +9,7 @@ describe Illuminati::Sample do
   end
 
   it "should add lims data" do
-    @sample.add_lims_data(@lims_data)
+    @sample.add_external_data(@lims_data)
     @sample.name.should == "name"
     @sample.lane.should == "2"
   end
@@ -23,7 +23,7 @@ describe Illuminati::Sample do
   end
 
   it "should have a valid id" do
-    @sample.add_lims_data(@lims_data)
+    @sample.add_external_data(@lims_data)
     @sample.id.should == @lims_data[:lane]
     @sample.barcode = "ACTAGC"
     @sample.barcode_type = :illumina
@@ -33,7 +33,7 @@ describe Illuminati::Sample do
   end
 
   it "should have outputs" do
-    @sample.add_lims_data(@lims_data)
+    @sample.add_external_data(@lims_data)
     @sample.outputs.should == ["s_#{@lims_data[:lane]}_1_NoIndex.fastq.gz"]
     @sample.barcode = "ACTAGC"
     @sample.barcode_type = :illumina
@@ -67,7 +67,7 @@ describe Illuminati::Sample do
   end
 
   it "should convert to yaml" do
-    @sample.add_lims_data(@lims_data)
+    @sample.add_external_data(@lims_data)
     yaml = @sample.to_yaml
     yaml.should_not == nil
     yaml_hash = Hash[YAML::load(yaml).map {|k,v| [k.to_sym, v]}]
@@ -79,15 +79,15 @@ describe Illuminati::Sample do
   end
 
   it "should convert to hash" do
-    hash = @sample.add_lims_data(@lims_data).to_h
+    hash = @sample.add_external_data(@lims_data).to_h
     hash[:name].should == @lims_data[:name]
     hash[:lane].should == @lims_data[:lane]
   end
 
   it "should handle lane based equality" do
     equal_sample = Illuminati::Sample.new
-    equal_sample.add_lims_data(@lims_data)
-    @sample.add_lims_data(@lims_data)
+    equal_sample.add_external_data(@lims_data)
+    @sample.add_external_data(@lims_data)
     @sample.lane_equal(equal_sample).should == true
     equal_sample.barcode = "ACNNNN"
     @sample.lane_equal(equal_sample).should == true

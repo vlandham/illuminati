@@ -10,7 +10,7 @@ module Illuminati
         puts "WARNING: Using yml external data at #{yml_file}"
         return ExternalDataYml.new(yml_file)
       else
-        return ExternalDataLims.new
+        return ExternalDataLims.new(base_dir)
       end
     end
 

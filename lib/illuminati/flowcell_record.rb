@@ -1,19 +1,18 @@
 require 'yaml'
 require 'illuminati/flowcell_data'
-require 'illuminati/sample_multiplex'
 require 'illuminati/external_data_adapter'
 require 'illuminati/external_data_base'
 require 'illuminati/views'
 
 module Illuminati
   #
-  # Contains all info from LIMS and SampleMultiplex.csv concerning an individual sample.
+  # Contains all info from external data concerning an individual sample.
   #
   class Sample
-    LIMS_DATA = [:lane, :genome, :name, :protocol]
-    attr_accessor *LIMS_DATA
-
-    attr_accessor :barcode, :barcode_type
+    # This is all the sample data expected from the external data source.
+    # See documentation in ExternalDataBase for more information
+    EXTERNAL_DATA = [:lane, :genome, :name, :protocol, :barcode, :barcode_type]
+    attr_accessor *EXTERNAL_DATA
 
     #
     # New instance of sample
@@ -25,19 +24,19 @@ module Illuminati
     end
 
     #
-    # Add lims data from LIMSAdapter to sample.
+    # Add external data from external data source (LIMS or flatfile) to sample.
     #
     # == Parameters:
-    # lims_data::
-    #   hash of lims data to add to the sample.
+    # external_data::
+    #   hash of lims/file data to add to the sample.
     #
     # == Returns:
     # self so chaining is possible.
     #
-    def add_lims_data lims_data
-      lims_data.each do |key, value|
+    def add_external_data external_data
+      external_data.each do |key, value|
         equals_key = (key.to_s + "=")
-        if LIMS_DATA.include?(key)
+        if EXTERNAL_DATA.include?(key)
           if self.respond_to?(equals_key)
             self.send(equals_key, value)
           else
@@ -154,9 +153,8 @@ module Illuminati
     # the Sample.
     #
     def to_h
-      data_fields = LIMS_DATA
+      data_fields = EXTERNAL_DATA
       data_fields << :id
-      data_fields << :barcode << :barcode_type
       data_fields << :read_count
       data = Hash.new
       data_fields.each do |field|
@@ -201,7 +199,7 @@ module Illuminati
   # number of samples where most of the action is.
   #
   class Lane
-    attr_accessor :number, :samples, :barcode_type
+    attr_accessor :number, :samples
 
     #
     # New instance of lane.
@@ -215,58 +213,39 @@ module Illuminati
       self.samples = []
     end
 
+
     #
-    # Creates new Samples and adds them to lane.
-    # Deals with barcoded samples here. Adding
-    # more than one sample for the lane.
+    # Add samples for lane
     #
     # == Parameters:
-    # lane_data::
-    #   lane data hash from LIMS
+    # external_sample_data::
+    #   Sample data from external source for this lane.
+    #   NOTE: should be only sample data for the current
+    #   Lane instance. NOT all sample data values.
     #
-    # multiplex_lane_data::
-    #   hash of multiplex data for lane
-    #
-    def add_samples lane_data, multiplex_lane_data
-      if multiplex_lane_data.empty?
+    def add_samples external_sample_data
+      external_sample_data.each do |sample_data|
         sample = Sample.new
-        sample.add_lims_data(lane_data)
+        sample.add_external_data(sample_data)
         self.samples << sample
-        self.barcode_type = :none
-      else
-        multiplex_lane_data.each do |multi_data|
-          sample = Sample.new
-          sample.add_lims_data(lane_data)
-          type, barcode = barcode_of(multi_data)
-          sample.barcode = barcode
-          sample.barcode_type = type
-          sample.name = multi_data[:name] if multi_data[:name]
-          self.barcode_type = type
-          self.samples << sample
-        end
       end
-      self.samples.sort! {|x,y| x.barcode <=> y.barcode}
+      samples.sort! do |x,y|
+        comp = x.lane <=> y.lane
+        comp.zero? ? (x.barcode_string <=> y.barcode_string) : comp
+      end
+      #samples.sort! {|x,y| x.id <=> y.id}
+      samples
     end
 
     #
-    # Helper method that should be moved elsewhere.
-    # given a multiplex hash, it returns the barcode and
-    # barcode type in the hash.
-    # Raises error if both illumina and custom barcodes are present
+    # Method to provide the barcode type of the lane
+    # Acquires data from the first sample, if samples
+    # are present
     #
-    def barcode_of multiplex_data
-      if multiplex_data[:illumina_barcode] and multiplex_data[:custom_barcode]
-        puts "ERROR: multiplex data has both illumina and custom barcodes"
-        puts "       illumina barcode:#{multiplex_data[:illumina_barcode]}."
-        puts "       custom barcode  :#{multiplex_data[:custom_barcode]}."
-        raise "too many barcodes"
-      elsif multiplex_data[:illumina_barcode]
-        return :illumina, multiplex_data[:illumina_barcode]
-      elsif multiplex_data[:custom_barcode]
-        return :custom, multiplex_data[:custom_barcode]
-      else
-        return :none, ""
-      end
+    def barcode_type
+      rtn = :none
+      rtn = samples[0].barcode_type if samples[0]
+      rtn
     end
 
     #
@@ -300,7 +279,7 @@ module Illuminati
   # multiplex data from SampleMultiplex.csv
   #
   class FlowcellRecord
-    attr_accessor :id, :lanes, :paths, :multiplex, :external_data
+    attr_accessor :id, :lanes, :paths, :external_data
 
     #
     # Finds flowcell for particular ID and populates its fields.
@@ -315,46 +294,65 @@ module Illuminati
     #   be what you want for actual use. It is passed in to simplify
     #   testing.
     #
+    # external_data::
+    #   Optional. If provided, this will be used as the source of the external
+    #   data required for the flowcell record to function.
+    #   If not present, the FlowcellRecord will use ExternalDataAdapter to
+    #   get its external data either from a flatfile or from the configured lims system.
+    #
     # == Returns:
     # Populated FlowcellRecord ready for action.
     #
-    def self.find flowcell_id, paths = FlowcellData.new(flowcell_id), external_data = ExternalDataLims.new
+    def self.find flowcell_id, paths = FlowcellData.new(flowcell_id), external_data = nil
       flowcell = FlowcellRecord.new(flowcell_id)
       flowcell.id = flowcell_id
       flowcell.paths = paths
+      if external_data
+        flowcell.external_data = external_data
+      else
+        flowcell.external_data = ExternalDataAdapter.find(flowcell.paths.base_dir)
+      end
 
-
-      flowcell.get_data
+      flowcell.add_samples
 
       flowcell
     end
 
+    #
+    # Initialize flowcell record.
+    #
+    # NOTE: the FlowcellRecord::find method is the preferred way
+    # to get an instance of a flowcell
+    #
+    # == Parameters:
+    # flowcell_id:
+    #   ID of the flowcell this record represents
     def initialize flowcell_id
       self.id = flowcell_id
       self.lanes = []
     end
 
-    def get_data
-      self.external_data = ExternalDataAdapter.find(self.paths.base_dir)
-      self.multiplex = SampleMultiplex.find(self.paths.base_dir)
-
-      lims_lane_data = self.external_data.lane_data_for self.id
-      self.add_lanes lims_lane_data, self.multiplex
-    end
-
-    def add_lanes lims_lane_data, multiplex_data
-      seen_lanes = []
-      lims_lane_data.each do |lims_lane|
-        lane_number = lims_lane[:lane].to_i
-        if !seen_lanes.include? lane_number
-          lane_multiplex_data = multiplex_data.select {|data| data[:lane].to_i == lane_number}
-          lane = Lane.new(lane_number)
-          lane.add_samples(lims_lane, lane_multiplex_data)
-          self.lanes << lane
-          seen_lanes << lane_number
-        end
+    #
+    # Gets sample data from external data source and
+    # populates flowcell record with lane and sample information
+    #
+    # The result of this function is that the FlowcellRecord instance
+    # should have all sample and lane data required for further processing
+    # by illuminati
+    #
+    # Method assumes external_data is present and points to the appropriate
+    # external data source. This method is called automatically when using the
+    # FlowcellRecord::find class method.
+    #
+    def add_samples
+      external_sample_data = self.external_data.sample_data_for self.id
+      lanes_in_sample_data = external_sample_data.collect {|s| s[:lane].to_i}.uniq
+      lanes_in_sample_data.each do |lane_num|
+        lane = Lane.new(lane_num)
+        lane_samples = external_sample_data.select {|s| s[:lane].to_i == lane_num}
+        lane.add_samples(lane_samples)
+        self.lanes << lane
       end
-      self.lanes.sort! {|x,y| x.number <=> y.number}
     end
 
     #

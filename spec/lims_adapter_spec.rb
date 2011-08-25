@@ -15,15 +15,15 @@ describe Illuminati::ExternalDataLims do
   end
 
   it "should produce array of hashes with lane info" do
-    good_lanes = [{:flowcell=>"639KBAAXX", :lane=>"1", :genome=>"mm9", :name=>"9.5dpc_HoxB1_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"2", :genome=>"mm9", :name=>"HoxB1_3FMS_myc_M2Flag_IP",    :cycles=>"40",  :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"3", :genome=>"mm9", :name=>"HoxB1_3FMS_myc_myc_IP", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"4", :genome=>"mm9", :name=>"HoxB1_3FMS_myc_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"5", :genome=>"mm9", :name=>"HoxB1_HF_M2Flag_IP", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"6", :genome=>"mm9", :name=>"HoxB1_HF_M2Flag_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"7", :genome=>"mm9", :name=>"Pbx_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"8", :genome=>"phiX", :name=>"Phi X", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"}]
-    lanes = @lims.lane_data_for "639KBAAXX"
+    good_lanes = [{:flowcell=>"639KBAAXX", :lane=>"1", :genome=>"mm9", :name=>"9.5dpc_HoxB1_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*", :barcode_type => :none, :barcode => ""},
+                  {:flowcell=>"639KBAAXX", :lane=>"2", :genome=>"mm9", :name=>"HoxB1_3FMS_myc_M2Flag_IP",    :cycles=>"40",  :protocol=>"eland_extended", :bases => "Y*", :barcode_type => :none, :barcode => ""},
+                  {:flowcell=>"639KBAAXX", :lane=>"3", :genome=>"mm9", :name=>"HoxB1_3FMS_myc_myc_IP", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*", :barcode_type => :none, :barcode => ""},
+                  {:flowcell=>"639KBAAXX", :lane=>"4", :genome=>"mm9", :name=>"HoxB1_3FMS_myc_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*", :barcode_type => :none, :barcode => ""},
+                  {:flowcell=>"639KBAAXX", :lane=>"5", :genome=>"mm9", :name=>"HoxB1_HF_M2Flag_IP", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*", :barcode_type => :none, :barcode => ""},
+                  {:flowcell=>"639KBAAXX", :lane=>"6", :genome=>"mm9", :name=>"HoxB1_HF_M2Flag_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*", :barcode_type => :none, :barcode => ""},
+                  {:flowcell=>"639KBAAXX", :lane=>"7", :genome=>"mm9", :name=>"Pbx_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*", :barcode_type => :none, :barcode => ""},
+                  {:flowcell=>"639KBAAXX", :lane=>"8", :genome=>"phiX", :name=>"Phi X", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*", :barcode_type => :none, :barcode => ""}]
+    lanes = @lims.sample_data_for "639KBAAXX"
     lanes.should == good_lanes
   end
 

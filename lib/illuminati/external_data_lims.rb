@@ -1,5 +1,6 @@
 
 require 'illuminati/external_data_base'
+require 'illuminati/sample_multiplex'
 
 module Illuminati
   #
@@ -10,6 +11,7 @@ module Illuminati
   # is not captured. This is the reason SampleMulitplex.csv is used. to suppliment LIMS data.
   #
   class ExternalDataLims < ExternalDataBase
+    attr_reader :base_dir
     # Specific data that is acquired from LIMS for a lane.
     LANE_DATA = [:flowcell, :lane, :genome, :name, :samples, :lab, :unknown, :cycles, :type, :protocol]
     LANE_DATA_CLEAN = [:flowcell, :lane, :genome, :name, :cycles, :protocol, :bases]
@@ -32,7 +34,8 @@ module Illuminati
       "pombe_9-2010" => [/.*[P|p]ombe.*/]
     }
 
-    def initialize
+    def initialize(base_dir = nil)
+      @base_dir = base_dir
     end
 
     #
@@ -72,12 +75,19 @@ module Illuminati
     #   Flowcell ID of the flowcell we want data from.
     #
     # == Returns:
-    # Array of hashes. Each hash has keys listed in the LANE_DATA array.
-    # Hash also contains other data, like a string representing the
-    # bases option for CASAVA 1.8 config.txt files. This should probably
-    # be moved to the config.txt file maker.
+    # This method returns an array of hashes describing each sample in the flowcell
+    # with the ID of flowcell_id.
+    # Each hash contains the following keys:
+    # {
+    #   :lane => String name of lane (1 - 8),
+    #   :name => Sample name.
+    #   :genome => Code for genome used for lane. Should correlate to folder name in genomes dir,
+    #   :protocol => Should be either "eland_extended" or "eland_pair",
+    #   :barcode_type => Should be :illumina, :custom, or :none
+    #   :barcode => If :barcode_type is not :none, this provides the 6 sequence barcode
+    # }
     #
-    def lane_data_for flowcell_id
+    def sample_data_for flowcell_id
       raw_lanes = query("fc_lane_library_samples", flowcell_id)
       lanes = Array.new
       raw_lanes.each do |raw_lane|
@@ -88,6 +98,101 @@ module Illuminati
         lanes << clean_lane(lane_data)
       end
       lanes
+      samples = sample_data_from_lanes(lanes)
+    end
+
+    #
+    # Converts lane data from LIMS into sample data
+    # that is necessary for flowcell records.
+    #
+    # It does this by combining the LIMS lane data with
+    # data from the SampleMultiplex file, if present.
+    # If not present, it will add the fields not found
+    # in the current lims to the lane data and use that.
+    #
+    # Additional fields added by sample_data_from_lanes:
+    #   :barcode
+    #   :barcode_type
+    #   :name (modified if found in the SampleMultiplex file)
+    #
+    def sample_data_from_lanes lanes
+      samples = []
+      multiplex_data = SampleMultiplex.find(@base_dir)
+      seen_lanes = []
+      lanes.each do |lims_lane|
+        lane_number = lims_lane[:lane].to_i
+        if !seen_lanes.include? lane_number
+          seen_lanes << lane_number
+          samples << combine_lane_and_multiplex_data(lims_lane, multiplex_data)
+        end
+      end
+      samples.flatten!
+      samples.sort! {|x,y| x[:lane].to_i <=> y[:lane].to_i}
+      samples
+    end
+
+    #
+    # Performs actual addition of the missing attributes for the sample data
+    # fields added:
+    #   :barcode_type
+    #   :barcode
+    #   :name
+    #
+    def combine_lane_and_multiplex_data lane_data, multiplex_data
+      lane_multiplex_data = multiplex_data.select {|data| data[:lane].to_i == lane_data[:lane].to_i}
+      samples = []
+      if !lane_multiplex_data.empty?
+        #lane_multiplex_data.sort! {|x,y| y[:name] <=> x[:name]}
+        lane_multiplex_data.each do |multiplex_data|
+          barcode_type, barcode = barcode_of(multiplex_data)
+          sample = lane_data.clone
+          sample[:barcode_type] = barcode_type
+          sample[:barcode] = barcode
+          sample[:name] = multiplex_data[:name] if multiplex_data[:name]
+          samples << sample
+        end
+      else
+          sample = lane_data.clone
+          sample[:barcode_type] = :none
+          sample[:barcode] = ""
+          samples << sample
+      end
+      samples
+    end
+
+    #
+    # Given a multiplex hash, it returns the barcode and
+    # barcode type in the hash.
+    # Raises error if both illumina and custom barcodes are present
+    #
+    def barcode_of multiplex_data
+      if multiplex_data[:illumina_barcode] and multiplex_data[:custom_barcode]
+        puts "ERROR: multiplex data has both illumina and custom barcodes"
+        puts "       illumina barcode:#{multiplex_data[:illumina_barcode]}."
+        puts "       custom barcode  :#{multiplex_data[:custom_barcode]}."
+        raise "too many barcodes"
+      elsif multiplex_data[:illumina_barcode]
+        return :illumina, multiplex_data[:illumina_barcode]
+      elsif multiplex_data[:custom_barcode]
+        return :custom, multiplex_data[:custom_barcode]
+      else
+        return :none, ""
+      end
+    end
+
+    def add_lanes lims_lane_data, multiplex_data
+      seen_lanes = []
+      lims_lane_data.each do |lims_lane|
+        lane_number = lims_lane[:lane].to_i
+        if !seen_lanes.include? lane_number
+          lane_multiplex_data = multiplex_data.select {|data| data[:lane].to_i == lane_number}
+          lane = Lane.new(lane_number)
+          lane.add_samples(lims_lane, lane_multiplex_data)
+          self.lanes << lane
+          seen_lanes << lane_number
+        end
+      end
+      self.lanes.sort! {|x,y| x.number <=> y.number}
     end
 
     #

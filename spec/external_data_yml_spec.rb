@@ -19,7 +19,7 @@ describe Illuminati::ExternalDataYml do
                   {:flowcell=>"639KBAAXX", :lane=>"7", :genome=>"mm9", :name=>"Pbx_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
                   {:flowcell=>"639KBAAXX", :lane=>"8", :genome=>"phiX", :name=>"Phi X", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"}]
 
-    @lims.lane_data_for("639KBAAXX").should == good_lanes
+    @lims.sample_data_for("639KBAAXX").should == good_lanes
 
 
   end

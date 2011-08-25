@@ -26,7 +26,7 @@ module Illuminati
     # If no SampleMultiplex.csv is found, an empty array is returned.
     def self.find base_dir
       data = []
-      file_path = find_file(base_dir)
+      file_path = find_file(base_dir) if base_dir
       if file_path
         data = get_multiplex_data(file_path)
       end
@@ -104,9 +104,9 @@ module Illuminati
       path_search = File.join(base_dir, "*SampleMultiplex*.csv")
       paths = Dir.glob(path_search)
       if paths.empty?
-        puts "WARNING: No MultiplexSamples.csv found for flowcell"
-        puts "         Assuming no lane is multiplexed on flowcell"
-        puts ""
+        #puts "WARNING: No MultiplexSamples.csv found for flowcell"
+        #puts "         Assuming no lane is multiplexed on flowcell"
+        #puts ""
       elsif paths.size > 1
         puts "ERROR: Mulitple SampleMultiplex.csv files found"
         puts "       path searched: #{path_search} found: #{paths.size} matches"

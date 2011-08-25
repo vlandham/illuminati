@@ -30,20 +30,20 @@ module Illuminati
     end
 
     #
-    # This method returns an array of hashes describing each lane in the flowcell
+    # This method returns an array of hashes describing each sample in the flowcell
     # with the ID of flowcell_id.
     # Each hash contains the following keys:
-    # { :flowcell => The flowcell ID. Should be same as input flowcell_id,
+    # {
     #   :lane => String name of lane (1 - 8),
+    #   :name => Sample name.
     #   :genome => Code for genome used for lane. Should correlate to folder name in genomes dir,
-    #   :name => Sample name of the sample in the lane. Replaced by data from SampleMultiplex.csv if multiplexed,
-    #   :cycles => String providing the number of cycles the flowcell lane was run,
-    #   :protocol => Should be either "eland_extended" or "eland_pair", 
-    #   :bases => Should be the string used in the config.txt file to indicate which bases to use, i.e. "Y*" or "Y* Y*"
+    #   :protocol => Should be either "eland_extended" or "eland_pair",
+    #   :barcode_type => Should be :illumina, :custom, or :none
+    #   :barcode => If :barcode_type is not :none, this provides the 6 sequence barcode
     # }
     #
-    def lane_data_for flowcell_id
-      raise "implement lane_data_for in sub-class"
+    def sample_data_for flowcell_id
+      raise "implement sample_data_for in sub-class"
     end
 
     #

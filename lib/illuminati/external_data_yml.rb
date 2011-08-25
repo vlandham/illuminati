@@ -20,7 +20,20 @@ module Illuminati
       end
     end
 
-    def lane_data_for flowcell_id
+    #
+    # This method returns an array of hashes describing each sample in the flowcell
+    # with the ID of flowcell_id.
+    # Each hash contains the following keys:
+    # {
+    #   :lane => String name of lane (1 - 8),
+    #   :name => Sample name.
+    #   :genome => Code for genome used for lane. Should correlate to folder name in genomes dir,
+    #   :protocol => Should be either "eland_extended" or "eland_pair",
+    #   :barcode_type => Should be :illumina, :custom, or :none
+    #   :barcode => If :barcode_type is not :none, this provides the 6 sequence barcode
+    # }
+    #
+    def sample_data_for flowcell_id
       @data[:lanes] ? @data[:lanes] : []
     end
 
