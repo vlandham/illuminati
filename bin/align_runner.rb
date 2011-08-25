@@ -69,7 +69,7 @@ module Illuminati
       flowcell = nil
 
       begin
-        flowcell = FlowcellData.new(flowcell_id)
+        flowcell = FlowcellPaths.new(flowcell_id)
       rescue Exception => err
         output "Problem creating flowcell"
         output "Flowcell id: #{flowcell_id}."

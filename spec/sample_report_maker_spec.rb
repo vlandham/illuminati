@@ -1,7 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 require 'illuminati/sample_report_maker'
 
-class SRFakePaths < Illuminati::FlowcellData
+class SRFakePaths < Illuminati::FlowcellPaths
   def initialize flowcell_id, testing = false
     super flowcell_id, testing
   end

@@ -28,7 +28,7 @@ end
 if __FILE__ == $0
   flowcell_id = ARGV[0]
   if flowcell_id
-    flowcell = Illuminati::FlowcellData.new flowcell_id, TEST_RUNNER_TEST
+    flowcell = Illuminati::FlowcellPaths.new flowcell_id, TEST_RUNNER_TEST
     runner = Illuminati::QcdataRunner.new flowcell, TEST_RUNNER_TEST
     runner.run
   else

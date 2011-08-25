@@ -59,7 +59,7 @@ module Illuminati
     def self.write_admin_script flowcell_id
       flowcell_id = flowcell_id.upcase
 
-      flowcell = FlowcellData.new flowcell_id
+      flowcell = FlowcellPaths.new flowcell_id
       puts flowcell.base_dir
 
       script = ScriptWritter.new flowcell.script_path

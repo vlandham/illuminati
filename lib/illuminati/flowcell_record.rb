@@ -1,5 +1,5 @@
 require 'yaml'
-require 'illuminati/flowcell_data'
+require 'illuminati/flowcell_paths'
 require 'illuminati/external_data_adapter'
 require 'illuminati/external_data_base'
 require 'illuminati/views'
@@ -303,7 +303,7 @@ module Illuminati
     # == Returns:
     # Populated FlowcellRecord ready for action.
     #
-    def self.find flowcell_id, paths = FlowcellData.new(flowcell_id), external_data = nil
+    def self.find flowcell_id, paths = FlowcellPaths.new(flowcell_id), external_data = nil
       flowcell = FlowcellRecord.new(flowcell_id)
       flowcell.id = flowcell_id
       flowcell.paths = paths

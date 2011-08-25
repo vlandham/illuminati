@@ -7,7 +7,7 @@ module Illuminati
   # flowcell. Most of the rest of the knowledge we have of a flowcell is contained
   # in FlowcellRecord. This class really focuses on paths.
   #
-  class FlowcellData
+  class FlowcellPaths
     attr_reader :flowcell_id, :test, :paths
     alias :id :flowcell_id
 

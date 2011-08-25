@@ -21,7 +21,7 @@ end
 if __FILE__ == $0
   flowcell_id = ARGV[0]
   if flowcell_id
-    paths = Illuminati::FlowcellData.new flowcell_id, OUTSOURCE_TEST, Illuminati::OutsourcePaths
+    paths = Illuminati::FlowcellPaths.new flowcell_id, OUTSOURCE_TEST, Illuminati::OutsourcePaths
     flowcell = Illuminati::FlowcellRecord.find flowcell_id, paths
     runner = Illuminati::PostRunner.new flowcell, OUTSOURCE_TEST
     runner.run

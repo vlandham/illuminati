@@ -1,10 +1,10 @@
 
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
-require 'illuminati/flowcell_data'
+require 'illuminati/flowcell_paths'
 
-describe Illuminati::FlowcellData do
+describe Illuminati::FlowcellPaths do
   before(:each) do
-    @data = Illuminati::FlowcellData.new("639P5AAXX", true)
+    @data = Illuminati::FlowcellPaths.new("639P5AAXX", true)
   end
 
   it "should have a base dir" do
