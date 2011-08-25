@@ -55,7 +55,8 @@ module Illuminati
     # LIMS and the perl script look, so we will just use it as is.
     #
     def query command, flowcell_id
-      query_results = %x[perl #{SCRIPT_PATH}/ngsquery.pl #{command} #{flowcell_id}]
+      query_script = ScriptPaths.lims_script
+      query_results = %x[perl #{query_script} #{command} #{flowcell_id}]
       query_results.force_encoding("iso-8859-1")
       rows = query_results.split("\n")
       split_rows = rows.collect {|row| row.split("\t")}

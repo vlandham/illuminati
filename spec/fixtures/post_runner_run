@@ -14,7 +14,7 @@ mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/undetermined
 cat /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Undetermined_indices/Sample_lane_2/lane2_Undetermined_L002_R1_001.fastq.gz > /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/undetermined/s_2_1_Undetermined.fastq.gz
 # distributing unaligned undetermined fastq.gz files
 # running fastqc
-cd /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter; /solexa/bin/scripts/fastqc.pl -v --files "*.fastq.gz"
+cd /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter; /solexa/bin/illuminati/scripts/fastqc.pl -v --files "*.fastq.gz"
 cd /solexa/bin/illuminati
 # distributing fastqc directory
 # processing export files

@@ -45,11 +45,11 @@ h2. Requirements
 * *CASAVA 1.8.x* - this tool is primarily a wrapper around the CASAVA pipeline software help automate it. This tool is designed to deal specifically with CASAVA 1.8, and would fail completely with an older version. CASAVA binaries should be located at @CASAVA_PATH@ (see @lib/illuminati/constants.rb@).
 ** Currently using CASAVA 1.8.*1*
 * *fastqc* - we need fastqc available from the command line. Tested with fastqc version *0.9.2*.
+** This is run by the @fastqc.pl@ script - located in the @scripts@ directory. 
+* *image magick* - the fastqc.pl script also uses the @convert@ tool of Image Magick to process the images created by fastqc. Expected to be on the path.
 * *fastx_barcode_splitter.pl* - needs to be availible from command line
 * *ngsquery.pl* - the most troublesome external dependency. ngsquery.pl should sit in the @SCRIPT_PATH@ directory. It is a perl script that connects to our LIMS system and provides flowcell and distribution information back to Illuminati. Future work will be to eliminate or reduce this external dependency. 
 ** *NOTE* - There is a crude work-around for not needing this LIMS connection. See *External Data* below.
-* *fastqc.pl* - another external perl script. This one automates the running of fastqc and a bit of post processing to make convenient, easy to read, centralized output. Future work includes rewriting this script in ruby for fun and including it in Illuminati.
-* *image magick* - the fastqc.pl script uses the @convert@ tool of Image Magick to process the images created by fastqc.
 * *Custom Directory Structure* - Take a look at @lib/illuminati/constants.rb@ to get a feel for the expected directory structure. Modifying this file as well as @assests/config.txt.erb@ should allow for your own directory structure, but no promises. Future work includes moving these paths to a configuration file.
 
 h2. Using Illuminati

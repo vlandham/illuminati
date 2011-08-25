@@ -465,10 +465,10 @@ module Illuminati
       cwd = Dir.pwd
       if check_exists(fastq_path)
         command = "cd #{fastq_path};"
-        script = File.join(SCRIPT_PATH, "fastqc.pl")
+        script = Illuminati::ScriptPaths.fastqc_script
         command += " #{script} -v --files \"*.fastq.gz\""
         execute command
-          execute "cd #{cwd}"
+        execute "cd #{cwd}"
       end
     end
 
