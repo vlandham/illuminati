@@ -10,8 +10,7 @@ module Illuminati
   QC_PATH = "/qcdata"
   # Location of external scripts that are needed by Illuminati.
   SCRIPT_PATH = "/solexa/bin/scripts"
-  # Location of lims query script now used
-  LIMS_SCRIPT_PATH = "/solexa/bin/scripts/remote/lims_data.pl"
+
   # Location where startup scripts will be placed.
   ADMIN_PATH = "/solexa/runs"
   # Location of log files.
@@ -36,6 +35,30 @@ module Illuminati
   FASTQ_STATS_PATTERN = "Basecall_Stats_*"
   # Pattern to use when searching for the aligned stats directory.
   ELAND_STATS_PATTERN = "Summary_Stats_*"
+end
+
+module Illuminati
+  class ScriptPaths
+    def self.external_scripts_path
+      SCRIPT_PATH
+    end
+
+    def self.internal_scripts_path
+      File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "scripts"))
+    end
+
+    def self.fastqc_script
+      File.join(internal_scripts_path, "fastqc.pl")
+    end
+
+    def self.lims_script
+      File.join(external_scripts_path, "ngsquery.pl")
+    end
+
+    def self.new_lims_script
+      File.join(external_scripts_path, "remote", "lims_data.pl")
+    end
+  end
 end
 
 module Illuminati
