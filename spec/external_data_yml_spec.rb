@@ -9,19 +9,9 @@ describe Illuminati::ExternalDataYml do
     @lims = Illuminati::ExternalDataYml.new(@external_data_file)
   end
 
-  it "should generate lane data" do
-    good_lanes = [{:flowcell=>"639KBAAXX", :lane=>"1", :genome=>"mm9", :name=>"9.5dpc_HoxB1_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"2", :genome=>"mm9", :name=>"HoxB1_3FMS_myc_M2Flag_IP",    :cycles=>"40",  :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"3", :genome=>"mm9", :name=>"HoxB1_3FMS_myc_myc_IP", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"4", :genome=>"mm9", :name=>"HoxB1_3FMS_myc_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"5", :genome=>"mm9", :name=>"HoxB1_HF_M2Flag_IP", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"6", :genome=>"mm9", :name=>"HoxB1_HF_M2Flag_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"7", :genome=>"mm9", :name=>"Pbx_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"},
-                  {:flowcell=>"639KBAAXX", :lane=>"8", :genome=>"phiX", :name=>"Phi X", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*"}]
-
-    @lims.sample_data_for("639KBAAXX").should == good_lanes
-
-
+  it "should generate sample data" do
+    good_samples = [{:lane=>"1", :name=>"9.5dpc_HoxB1_input", :genome=>"mm9", :protocol=>"eland_extended", :barcode_type=>:none, :barcode=>""}, {:lane=>"2", :name=>"HoxB1_3FMS_myc_M2Flag_IP", :genome=>"mm9", :protocol=>"eland_extended", :barcode_type=>:none, :barcode=>""}, {:lane=>"3", :name=>"HoxB1_3FMS_myc_myc_IP", :genome=>"mm9", :protocol=>"eland_extended", :barcode_type=>:none, :barcode=>""}, {:lane=>"4", :name=>"HoxB1_3FMS_myc_input", :genome=>"mm9", :protocol=>"eland_extended", :barcode_type=>:none, :barcode=>""}, {:lane=>"5", :name=>"HoxB1_HF_M2Flag_IP", :genome=>"mm9", :protocol=>"eland_extended", :barcode_type=>:none, :barcode=>""}, {:lane=>"6", :name=>"HoxB1_HF_M2Flag_input", :genome=>"mm9", :protocol=>"eland_extended", :barcode_type=>:none, :barcode=>""}, {:lane=>"7", :name=>"Pbx_input", :genome=>"mm9", :protocol=>"eland_extended", :bases=>"Y*", :barcode_type=>:none, :barcode=>""}, {:lane=>"8", :genome=>"phiX", :name=>"Phi X", :protocol=>"eland_extended", :barcode_type=>:none, :barcode=>""}]
+    @lims.sample_data_for("639KBAAXX").should == good_samples
   end
 
   it "should generate distribution data" do

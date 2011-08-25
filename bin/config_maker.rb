@@ -31,7 +31,7 @@ module Illuminati
 
     flowcell = FlowcellRecord.find(flowcell_id)
 
-    lanes_with_barcodes = CustomBarcodeFileMaker.make flowcell.multiplex, flowcell.paths
+    lanes_with_barcodes = CustomBarcodeFileMaker.make flowcell
 
     if !lanes_with_barcodes.empty?
       puts "Custom Barcode files made for lanes #{lanes_with_barcodes.join(", ")}"

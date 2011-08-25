@@ -22,12 +22,13 @@ end
 describe Illuminati::CustomBarcodeFileMaker do
   before(:each) do
     @paths = FakePathsBarcode.new
-    @multiplex_data = Illuminati::SampleMultiplex.find(@paths.base_dir)
+    @external_data = Illuminati::ExternalDataYml.new(File.expand_path(File.dirname(__FILE__) + "/data/custom/external/639P5AAXX_external_data.yml"))
+    @flowcell = Illuminati::FlowcellRecord.find("639P5AAXX", @paths, @external_data)
   end
 
   it "should create barcode files" do
-    output = Illuminati::CustomBarcodeFileMaker.make(@multiplex_data, @paths)
-    output.should == [1,2,3,4,5,6]
+    output = Illuminati::CustomBarcodeFileMaker.make(@flowcell)
+    output.should == [1]
     output.each do |lane|
       path = @paths.custom_barcode_path(lane)
       File.exists?(path).should == true

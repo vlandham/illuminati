@@ -1,11 +1,35 @@
 --- 
 :samples: 
 - :lane: "1"
-  :name: 9.5dpc_HoxB1_input
+  :name: "dot1-IP"
   :genome: mm9
   :protocol: eland_extended
-  :barcode_type: :none
-  :barcode: ""
+  :barcode_type: :custom
+  :barcode: "ACTTGA"
+- :lane: "1"
+  :name: "dot1fus3-wce"
+  :genome: mm9
+  :protocol: eland_extended
+  :barcode_type: :custom
+  :barcode: "GATCAG"
+- :lane: "1"
+  :name: "dot1fus3-IP"
+  :genome: mm9
+  :protocol: eland_extended
+  :barcode_type: :custom
+  :barcode: "TAGCTT"
+- :lane: "1"
+  :name: "dot1tda1-wce"
+  :genome: mm9
+  :protocol: eland_extended
+  :barcode_type: :custom
+  :barcode: "GGCTAC"
+- :lane: "1"
+  :name: "dot1tda1-IP"
+  :genome: mm9
+  :protocol: eland_extended
+  :barcode_type: :custom
+  :barcode: "CTTGTA"
 - :lane: "2"
   :name: HoxB1_3FMS_myc_M2Flag_IP
   :genome: mm9

@@ -34,7 +34,7 @@ module Illuminati
     # }
     #
     def sample_data_for flowcell_id
-      @data[:lanes] ? @data[:lanes] : []
+      @data[:samples] ? @data[:samples] : []
     end
 
     def distributions_for flowcell_id

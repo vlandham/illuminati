@@ -11,12 +11,8 @@ module Illuminati
     # the post run process. This work around could probably be removed with a bit better program design.
     #
     # == Parameters
-    # multiplex_data::
-    #   multiplex_data originally parsed from SampleMultiplex.csv file. See SampleMultiplex for details.
-    #
-    # flowcell_paths::
-    #   FlowcellPaths instance to acquire the custom barcode path names for each lane.
-    #   Method calls custom_barcode_path method
+    # flowcell::
+    #   Instance of FlowcellRecord
     #
     # == Returns
     # After this method is called, a single file for each lane that uses custom barcodes is created.
@@ -24,14 +20,18 @@ module Illuminati
     # (ultimately determined by the custom barcode column in SampleMultiplex.csv) then no files will
     # be created. Existing files will be over-written.
     #
-    def self.make multiplex_data, flowcell_paths
+    def self.make flowcell
       rtn = []
-      (1..8).each do |lane|
-        barcodes_for_lane = multiplex_data.select {|data| data[:lane].to_i == lane and data[:custom_barcode]}
-        if !barcodes_for_lane.empty?
-          write_barcodes barcodes_for_lane, flowcell_paths.custom_barcode_path(lane)
-          rtn << lane
+      custom_lanes = Hash.new {|h,k| h[k] = []}
+      flowcell.each_sample_with_lane do |sample, lane|
+        if sample.barcode_type == :custom
+          custom_lanes[sample.lane.to_i] << sample.barcode
         end
+      end
+
+      custom_lanes.each do |lane, barcodes|
+        write_barcodes barcodes, flowcell.paths.custom_barcode_path(lane)
+        rtn << lane
       end
       rtn
     end
@@ -40,16 +40,16 @@ module Illuminati
     # Performs the acutal write to each file with custom barcode info.
     #
     # == Parameters:
-    # barcode_data::
-    #   One line of custom barcode data.
+    # barcodes::
+    #   Array of custom barcodes for a lane
     #
     # output_file::
     #   Filename for one custom barcode lane file.
     #
-    def self.write_barcodes barcode_data, output_file
+    def self.write_barcodes barcodes, output_file
       File.open(output_file, 'w') do |file|
-        barcode_data.each do |data|
-          file << data[:custom_barcode] << "\t" << data[:custom_barcode] << "\n"
+        barcodes.each do |barcode|
+          file << barcode << "\t" << barcode << "\n"
         end
       end
     end
