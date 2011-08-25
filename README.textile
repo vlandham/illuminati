@@ -43,10 +43,13 @@ General overview of the execution of the analysis pipeline this tool performs:
 h2. Requirements
 
 * *CASAVA 1.8.x* - this tool is primarily a wrapper around the CASAVA pipeline software help automate it. This tool is designed to deal specifically with CASAVA 1.8, and would fail completely with an older version. CASAVA binaries should be located at @CASAVA_PATH@ (see @lib/illuminati/constants.rb@).
+** Currently using CASAVA 1.8.*1*
 * *fastqc* - we need fastqc available from the command line. Tested with fastqc version *0.9.2*.
 * *fastx_barcode_splitter.pl* - needs to be availible from command line
 * *ngsquery.pl* - the most troublesome external dependency. ngsquery.pl should sit in the @SCRIPT_PATH@ directory. It is a perl script that connects to our LIMS system and provides flowcell and distribution information back to Illuminati. Future work will be to eliminate or reduce this external dependency. 
+** *NOTE* - There is a crude work-around for not needing this LIMS connection. See *External Data* below.
 * *fastqc.pl* - another external perl script. This one automates the running of fastqc and a bit of post processing to make convenient, easy to read, centralized output. Future work includes rewriting this script in ruby for fun and including it in Illuminati.
+* *image magick* - the fastqc.pl script uses the @convert@ tool of Image Magick to process the images created by fastqc.
 * *Custom Directory Structure* - Take a look at @lib/illuminati/constants.rb@ to get a feel for the expected directory structure. Modifying this file as well as @assests/config.txt.erb@ should allow for your own directory structure, but no promises. Future work includes moving these paths to a configuration file.
 
 h2. Using Illuminati
@@ -59,11 +62,11 @@ Once things are in order, running Illuminati should be a three step process:
 
 h4. Step 1: Run startup.rb
 
-Run the @bin/startup.rb@ script passing in the flowcell id:
+Run the @bin/startup_run.rb@ script passing in the flowcell id:
 
 <pre>
 $ cd /solexa/bin/illuminati
-$ ./bin/startup 639AXXPY
+$ ./bin/startup_run.rb 639AXXPY
 </pre>
 
 This should generate an Admin script in @/solexa/runs/@. This admin script is named @<flowcell_id>.sh@ and is meant to be executed to start off the main Illuminati process. So for example, this admin script would be named @639AXXPY.sh@.
@@ -136,6 +139,12 @@ A log file is also created for each flowcell in @/solexa/runs/log@. This will be
 @align_runner.rb@ and @post_runner.rb@ also generate log files during their execution. If @post_runner.rb@ completes, it will produce a shell script with all the commands it did, so that theoretically, you could run it again if you wanted.
 
 CASAVA's make output for the bcl conversion and align steps are captured in their own make.out files.
+
+h2. External Data
+
+If you want to avoid using the @ngsquery.pl@ script or other external LIMS systems, you can do so by creating an @external_data.yml@ file and placing it in the flowcell's root directory. 
+
+See the specs for @ExternalDataYml@ for details.
 
 h2. SampleMultiplex.csv
 
