@@ -11,6 +11,6 @@ describe Illuminati::ExternalDataLimsNew do
     data = @lims.data_for flowcell
     data.kind_of?(Hash).should == true
     data["samples"].size.should == 21
-    puts data
+    #puts data
   end
 end
