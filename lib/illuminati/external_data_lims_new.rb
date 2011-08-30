@@ -35,8 +35,11 @@ module Illuminati
     def sample_data_for flowcell_id
       lims_data = data_for flowcell_id
       sample_datas = []
+      # need to maintain protocol for control lane.
+      previous_protocol = nil
       lims_data["samples"].each do |lims_sample_data|
         sample_data = {}
+
         sample_data[:lane] = lims_sample_data["laneID"]
         sample_data[:name] = lims_sample_data["sampleName"]
         sample_data[:genome] = lims_sample_data["genomeVersion"]
@@ -50,9 +53,27 @@ module Illuminati
                                        :none
                                      end
         sample_data[:barcode] = lims_sample_data["index"] || ""
+        if lims_sample_data["isControl"] == 1
+          lane = lims_sample_data["laneID"] || "8"
+          previous_protocol ||= "eland_extended"
+          sample_data = sample_data_for_control_lane lane, previous_protocol
+        else
+          previous_protocol = sample_data[:protocol]
+        end
         sample_datas << sample_data
       end
       sample_datas
+    end
+
+    def sample_data_for_control_lane lane, protocol
+      sample_data = {}
+      sample_data[:lane] = lane
+      sample_data[:name] = "phiX"
+      sample_data[:genome] = "phiX"
+      sample_data[:protocol] = protocol
+      sample_data[:barcode_type] = :none
+      sample_data[:barcode] = ""
+      sample_data
     end
 
     #
