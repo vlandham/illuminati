@@ -1,0 +1,22 @@
+---
+casava_path: /home/solexa/CASAVA_1.8.1/bin
+email_list:
+- jfv@stowers.org
+- test@test.org
+qc_path: /qcdata
+script_path: /solexa/bin/scripts
+admin_path: /solexa/runs
+logs_path: /solexa/runs/log
+flowcell_path_base: /solexa
+basecalls_path: Data/Intensities/BaseCalls
+fastq_combine_path: test_all
+fastq_undetermined_combine_path: undetermined
+eland_combine_path: all
+fastq_filter_path: test_filter
+project_pattern: Project_*
+fastq_stats_pattern: Basecall_Stats_*
+eland_stats_pattern: Summary_Stats_*
+email_server: testserver:25
+web_dir_root: http://molbio/solexaRuns/
+num_leading_dirs_to_strip: 1
+

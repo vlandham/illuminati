@@ -50,7 +50,7 @@ h2. Requirements
 * *fastx_barcode_splitter.pl* - needs to be availible from command line
 * *ngsquery.pl* - the most troublesome external dependency. ngsquery.pl should sit in the @SCRIPT_PATH@ directory. It is a perl script that connects to our LIMS system and provides flowcell and distribution information back to Illuminati. Future work will be to eliminate or reduce this external dependency. 
 ** *NOTE* - There is a crude work-around for not needing this LIMS connection. See *External Data* below.
-* *Custom Directory Structure* - Take a look at @lib/illuminati/constants.rb@ to get a feel for the expected directory structure. Modifying this file as well as @assests/config.txt.erb@ should allow for your own directory structure, but no promises. Future work includes moving these paths to a configuration file.
+* *Custom Directory Structure* - By default, Illuminati expects a certain directory structure to be in place to be able to run correctly. @lib/illuminati/config.rb@ describes the default path structure, with @lib/illuminati/constants.rb@ providing some description of how these paths are used. Configuration of the paths and other options used by Illuminati can be done by creating a config file and setting the @ENV@ variable @ILLUMINATI_CONFIG@ to point to that path. See @assests/example.config.yaml@ for a starting point for the config file.
 
 h2. Using Illuminati
 
@@ -329,3 +329,23 @@ $ autotest
 </pre>
 
 Everything should pass, or something is broken. If you are on another machine, some of the tests can be run using rspec. Some tests will fail due to requirements of file structure and database access. Future work includes making it configurable enough to test on other machines.
+
+h2. Contributing
+
+If you'd like to hack on Illuminati, start by forking the repo on GitHub:
+
+https://github.com/vlandham/illuminati
+
+To get all of the dependencies, run bundle install first. The best way to get
+your changes merged back into core is as follows:
+
+* Clone down your fork
+* Create a thoughtfully named topic branch to contain your change
+* Hack away
+* Add tests and make sure at least the new features pass by running rspec
+* If you are adding new functionality, document it in the README
+* Do not change the version number, I will do that on my end
+* If necessary, rebase your commits into logical chunks, without errors
+* Push the branch up to GitHub
+* Send a pull request to the vlandham/illuminati project.
+

@@ -1,7 +1,7 @@
-EMAIL_LIST jfv@stowers.org
-EMAIL_SERVER localhost:25
-WEB_DIR_ROOT http://molbio/solexaRuns/
-NUM_LEADING_DIRS_TO_STRIP 1
+EMAIL_LIST <%= EMAIL_LIST.join(" ") %>
+EMAIL_SERVER <%= EMAIL_SERVER %>
+WEB_DIR_ROOT <%= WEB_DIR_ROOT %>
+NUM_LEADING_DIRS_TO_STRIP <%= NUM_LEADING_DIRS_TO_STRIP %>
 EXPT_DIR <%= @input_dir %>
 <% @lanes.each do |lane| %>
 <%= "#{lane[:lane]}:ELAND_GENOME /solexa/igenome/#{lane[:genome]}\n" %>
