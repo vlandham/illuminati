@@ -85,6 +85,11 @@ module Illuminati
         puts "ERROR: sample report maker cannot find demultiplex data for #{sample.id}"
       else
         count = casava_data["# Reads"]
+        # for paired-end reads, the casava output is the total number of reads for both
+        # ends. So we divide by 2 to get the number of reads for individual reads.
+        if sample.read_count == 2
+          count = (count.to_f / 2).round.to_i.to_s
+        end
         data << count.to_s
         percent = casava_data["% PF"]
         count_num = count.to_f
