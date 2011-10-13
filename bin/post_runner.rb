@@ -34,6 +34,11 @@ module Illuminati
   # The run method is the main starting point that kicks off all the rest of the process.
   # When done, the primary analysis pipeline should be considered complete.
   #
+  # TODO: Refactor. I don't like how this is implemented - and it is very limited in terms
+  # of only doing specifically what we want it to do and nothing more or less.
+  # Perhaps break this apart into separate modules or runners that perform individual tasks
+  # and then have configuration or an admin class determine which post run tasks get executed.
+  #
   class PostRunner
     attr_reader :flowcell
     attr_accessor :test
@@ -139,7 +144,7 @@ module Illuminati
 
     #
     # Main entry point to PostRunner. Starts post run process and executes all
-    # required steps to getting data the way we want it.
+    # required steps to getting data and files in to the way we want them.
     #
     def run
       start_flowcell
@@ -203,6 +208,11 @@ module Illuminati
       File.open(@flowcell.paths.sample_report_path, 'w') do |file|
         file.puts sample_report
       end
+    end
+
+    def notify_lims
+      status "notifying lims"
+      #LimsNotifier.complete(@flowcell)
     end
 
     def distribute_sample_report distributions
