@@ -3,6 +3,7 @@ EMAIL_SERVER localhost:25
 WEB_DIR_ROOT http://molbio/solexaRuns/
 NUM_LEADING_DIRS_TO_STRIP 1
 EXPT_DIR /solexa/bin/illuminati/spec/data/Unaligned
+REFERENCE smed SAMTOOLS_GENOME /solexa/igenome/smed/smed.fa
 123456:ELAND_GENOME /solexa/igenome/sacCer2
 123456:ANALYSIS eland_extended
 123456:ELAND_MAX_MATCHES 10
