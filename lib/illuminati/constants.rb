@@ -50,6 +50,10 @@ module Illuminati
       SCRIPT_PATH
     end
 
+    def self.new_external_scripts_path
+      File.join(external_scripts_path, "remote")
+    end
+
     def self.internal_scripts_path
       File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "scripts"))
     end
@@ -63,7 +67,15 @@ module Illuminati
     end
 
     def self.new_lims_script
-      File.join(external_scripts_path, "remote", "lims_data.pl")
+      File.join(new_external_scripts_path, "lims_data.pl")
+    end
+
+    def self.lims_upload_script
+      File.join(new_external_scripts_path, "lims_upload_samples.pl")
+    end
+
+    def self.lims_complete_script
+      File.join(new_external_scripts_path, "lims_flowcell_complete.pl")
     end
   end
 end

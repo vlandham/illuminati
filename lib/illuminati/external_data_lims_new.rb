@@ -3,6 +3,11 @@ require 'illuminati/external_data_base'
 
 module Illuminati
   class ExternalDataLimsNew < ExternalDataBase
+    attr_reader :base_dir
+
+    def initialize(base_dir = nil)
+      @base_dir = base_dir
+    end
 
     #
     # Internal interface to LIMS system. Unfortunately, this depends on an external

@@ -3,8 +3,10 @@ require 'illuminati/flowcell_record'
 
 module Illuminati
   class CasavaOutputParser
-    DATA_CONVERSIONS = {"Yield (Mbases)" => :int, "# Reads" => :int, "Sample Yield (Mbases)" => :int, "Clusters (raw)" => :int,
+    DATA_CONVERSIONS = {"Yield (Mbases)" => :int, "# Reads" => :int,
+                        "Sample Yield (Mbases)" => :int, "Clusters (raw)" => :int,
                         "Clusters (PF)" => :int, "1st Cycle Int (PF)" => :int}
+
     attr_reader :demultiplex_stats_filename, :sample_summary_filename
     def initialize demultiplex_stats_filename, sample_summary_filename
       @demultiplex_filename = demultiplex_stats_filename || ""

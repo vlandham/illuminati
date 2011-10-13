@@ -5,9 +5,38 @@ require 'illuminati/tab_file_parser'
 require 'illuminati/casava_output_parser'
 
 module Illuminati
+
+  class LimsNotifier
+    TEMP_JSON_FILE_NAME = "lims_data.json"
+
+    def initialize flowcell
+      @view = LimsUploadView.new(flowcell)
+      @flowcell = flowcell
+    end
+
+    def upload_to_lims
+      data = @view.to_json
+
+      json_filename = File.join(@flowcell.paths.base_dir, TEMP_JSON_FILE_NAME)
+
+      File.open(json_filename, 'w') do |file|
+        file.puts(data)
+      end
+      perl_script = Illuminati::ScriptPaths.lims_upload_script
+      command = "#{perl_script} #{json_filename}"
+      puts command
+      system(command)
+    end
+
+    def complete_analysis
+      perl_script = Illuminati::ScriptPaths.lims_complete_script
+      command = "#{perl_script} #{@flowcell.id}"
+      system(command)
+    end
+  end
+
   #
   # Similar to SampleReportMaker - parses output files
-  # and uploads to LIMS system
   #
   class LimsUploadView
     CASAVA_TO_LIMS = {
@@ -26,31 +55,47 @@ module Illuminati
 
     CUSTOM_TO_LIMS = {}
 
+
     def initialize flowcell
       @flowcell = flowcell
       @demultiplex_filename = File.join(@flowcell.paths.unaligned_stats_dir, "Demultiplex_Stats.htm")
       @sample_summary_filename = File.join(@flowcell.paths.aligned_stats_dir, "Sample_Summary.htm")
     end
 
+
     def to_json
       flowcell_data = []
+      custom_barcoded_lanes_seen = []
       @flowcell.each_sample_with_lane do |sample, lane|
         sample.reads.each do |read|
-          sample_read_data = data_for sample, read
-          flowcell_data << sample_read_data
+          send = true
+
+          # only send data for custom barcoded lanes once
+          if sample.barcode_type == :custom
+            if !custom_barcoded_lanes_seen.include? sample.lane
+              custom_barcoded_lanes_seen << sample.lane
+            else
+              send = false
+            end
+          end
+
+          if send
+            sample_read_data = data_for sample, read
+            flowcell_data << sample_read_data
+          end
         end
       end
-      flowcell_data
+      flowcell_data.to_json
     end
 
     def data_for sample, read
       sample_data = {}
 
-      if sample.barcode_type == :custom
-        sample_data = get_custom_data sample, read
-      else
+      #if sample.barcode_type == :custom
+      #  sample_data = get_custom_data sample, read
+      #else
         sample_data = get_casava_data sample, read
-      end
+      #end
       sample_data
     end
 
@@ -59,6 +104,11 @@ module Illuminati
       lims_data["FCID"] = @flowcell.id
       lims_data["laneID"] = sample.lane
       lims_data["readNo"] = read
+
+      if sample.barcode_string != "NoIndex"
+        lims_data["index"] = sample.barcode_string
+      end
+
       lims_data
     end
 

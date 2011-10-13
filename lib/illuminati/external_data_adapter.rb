@@ -1,5 +1,6 @@
 require 'illuminati/external_data_lims'
 require 'illuminati/external_data_yml'
+require 'illuminati/external_data_lims_new'
 
 module Illuminati
   class ExternalDataAdapter

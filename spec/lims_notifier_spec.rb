@@ -24,6 +24,7 @@ describe Illuminati::LimsUploadView do
   # will not work on local machine
   it "should make report" do
     data = @view.to_json
+    @view.upload_to_lims
 
     puts data.inspect
   end
