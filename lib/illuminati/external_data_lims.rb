@@ -31,7 +31,8 @@ module Illuminati
       "hg19" => [/.*[H|h]uman.*/,/.*hg19.*/,/.*[S|s]apien.*/],
       "phiX" => [/.*phiX.*/, /.*phix.*/],
       "dm3" => [/.*dm3.*/, /.*[D|d]rosophila.*/],
-      "pombe_9-2010" => [/.*[P|p]ombe.*/]
+      "pombe_9-2010" => [/.*[P|p]ombe.*/],
+      "smed" => [/.*[F|f]latworm.*/, /.*[S|s]med.*/]
     }
 
     def initialize(base_dir = nil)

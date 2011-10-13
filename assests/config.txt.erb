@@ -3,6 +3,7 @@ EMAIL_SERVER <%= EMAIL_SERVER %>
 WEB_DIR_ROOT <%= WEB_DIR_ROOT %>
 NUM_LEADING_DIRS_TO_STRIP <%= NUM_LEADING_DIRS_TO_STRIP %>
 EXPT_DIR <%= @input_dir %>
+REFERENCE smed SAMTOOLS_GENOME /solexa/igenome/smed/smed.fa
 <% @lanes.each do |lane| %>
 <%= "#{lane[:lane]}:ELAND_GENOME /solexa/igenome/#{lane[:genome]}\n" %>
 <%= "#{lane[:lane]}:ANALYSIS #{lane[:protocol]}\n" %>
