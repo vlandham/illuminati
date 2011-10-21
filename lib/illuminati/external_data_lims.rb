@@ -32,7 +32,7 @@ module Illuminati
       "phiX" => [/.*phiX.*/, /.*phix.*/],
       "dm3" => [/.*dm3.*/, /.*[D|d]rosophila.*/],
       "pombe_9-2010" => [/.*[P|p]ombe.*/],
-      "smed" => [/.*[F|f]latworm.*/, /.*[S|s]med.*/]
+      "smed" => [/.*[F|f]latworm.*/, /.*[S|s]med.*/, /.*[S|s]chmidtea.*/]
     }
 
     def initialize(base_dir = nil)
