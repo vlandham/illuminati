@@ -212,7 +212,10 @@ module Illuminati
 
     def notify_lims
       status "notifying lims"
-      #LimsNotifier.complete(@flowcell)
+
+      notifier = Illuminati::LimsNotifier.new(@flowcell)
+      notifier.upload_to_lims
+      notifier.complete_analysis
     end
 
     def distribute_sample_report distributions
