@@ -2,6 +2,7 @@
 
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
+require 'optparse'
 require 'illuminati'
 
 BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
@@ -27,6 +28,9 @@ module Illuminati
   # * Rename export files
   # * Distribute export files to project directories
   #
+  # The --steps option can be used to limit which steps are performed by the post run process.
+  # Right now, check out the run method to see how this works.
+  #
   # So there is a lot going down here. It uses Flowcell path data extensively for
   # determining what goes where. It also uses another class to get distribution data which
   # pulls this info from LIMS.
@@ -34,14 +38,10 @@ module Illuminati
   # The run method is the main starting point that kicks off all the rest of the process.
   # When done, the primary analysis pipeline should be considered complete.
   #
-  # TODO: Refactor. I don't like how this is implemented - and it is very limited in terms
-  # of only doing specifically what we want it to do and nothing more or less.
-  # Perhaps break this apart into separate modules or runners that perform individual tasks
-  # and then have configuration or an admin class determine which post run tasks get executed.
-  #
   class PostRunner
     attr_reader :flowcell
-    attr_accessor :test
+    attr_reader :options
+    ALL_STEPS = %w{unaligned custom undetermined fastqc aligned stats report qcdata}
 
     #
     # New PostRunner instance
@@ -49,12 +49,28 @@ module Illuminati
     # == Parameters:
     # flowcell::
     #   Flowcell data instance. Passed in to help with testing.
-    # test::
-    #   If true, system commands will be printed but not executed.
+    # options::
+    #   Hash of options to configure runner.
+    #   :test - is the runner in test mode?
     #
-    def initialize flowcell, test = false
+    def initialize flowcell, options = {}
+      options = {:test => false, :steps => ALL_STEPS}.merge(options)
+
+      options[:steps].each do |step|
+        valid = true
+        unless ALL_STEPS.include? step
+          puts "ERROR: invalid step: #{step}"
+          valid = false
+        end
+
+        if !valid
+          puts "Valid steps: #{ALL_STEPS.join(", ")}"
+          raise "Invalid Step"
+        end
+      end
+
       @flowcell = flowcell
-      @test = test
+      @options = options
       @post_run_script = nil
     end
 
@@ -65,7 +81,7 @@ module Illuminati
     #
     def execute command
       log command
-      system(command) unless @test
+      system(command) unless @options[:test]
     end
 
     #
@@ -85,7 +101,7 @@ module Illuminati
     #
     def status message
       log "# #{message}"
-      SolexaLogger.log(@flowcell.paths.id, message) unless @test
+      SolexaLogger.log(@flowcell.paths.id, message) unless @options[:test]
     end
 
     #
@@ -112,7 +128,7 @@ module Illuminati
       files.each do |file|
         if !file or !File.exists?(file)
           log "# Error: file not found:#{file}."
-          rtn = false unless @test
+          rtn = false unless @options[:test]
         end
       end
       rtn
@@ -123,7 +139,7 @@ module Illuminati
     # Should be called by run, but not directly.
     #
     def start_flowcell
-      Emailer.email "starting post run for #{@flowcell.paths.id}" unless @test
+      Emailer.email "starting post run for #{@flowcell.paths.id}" unless @options[:test]
       status "postrun start"
 
       @post_run_script_filename = File.join(@flowcell.paths.base_dir, "postrun_#{@flowcell.paths.id}.sh")
@@ -138,7 +154,7 @@ module Illuminati
       @post_run_script.close if @post_run_script
       qc_postrun_filename = File.join(@flowcell.paths.qc_dir, File.basename(@post_run_script_filename))
       execute "cp #{@post_run_script_filename} #{qc_postrun_filename}"
-      Emailer.email "post run complete for #{@flowcell.paths.id}" unless @test
+      Emailer.email "post run complete for #{@flowcell.paths.id}" unless @options[:test]
       status "postrun done"
     end
 
@@ -149,13 +165,46 @@ module Illuminati
     def run
       start_flowcell
       distributions = @flowcell.external_data.distributions_for @flowcell.id
+      steps = @options[:steps]
+      status "running steps: #{steps.join(", ")}"
 
-      run_unaligned distributions
-      run_unaligned_qc distributions
+      if steps.include? "unaligned"
+        # unaligned dir
+        process_unaligned_reads
+        distribute_unaligned_reads distributions
+      end
 
-      run_aligned distributions
+      if steps.include? "custom"
+        process_custom_barcode_reads distributions
+      end
 
-      distribute_to_qcdata
+      if steps.include? "undetermined"
+        process_undetermined_reads distributions
+      end
+
+      if steps.include? "fastqc"
+        run_fastqc @flowcell.paths.fastq_filter_dir
+        distribute_to_unique distributions, @flowcell.paths.fastqc_dir
+      end
+
+      if steps.include? "aligned"
+        run_aligned distributions
+      end
+
+      if steps.include? "stats"
+        create_custom_stats_files
+        distribute_custom_stats_files distributions
+      end
+
+      if steps.include? "report"
+        create_sample_report
+        distribute_sample_report distributions
+      end
+
+      if steps.include? "qcdata"
+        distribute_to_qcdata
+      end
+
       stop_flowcell
     end
 
@@ -163,23 +212,35 @@ module Illuminati
     # Executes commands related to fastq.gz files including
     # filtering them and distributing them.
     #
-    def run_unaligned distributions
+    def process_unaligned_reads
       status "processing unaligned"
       fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
                                        @flowcell.paths.fastq_combine_dir,
                                        @flowcell.paths.fastq_filter_dir)
       cat_files fastq_groups
-      filter_fastq_files fastq_groups, @flowcell.paths.fastq_filter_dir
+      filter_fastq_files(fastq_groups, @flowcell.paths.fastq_filter_dir)
+    end
 
+    #
+    # Distributes Unaligned Reads
+    #
+    def distribute_unaligned_reads distributions
       status "distributing unaligned fastq.gz files"
-      distribute_files fastq_groups, distributions
+      fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
+                                       @flowcell.paths.fastq_combine_dir,
+                                       @flowcell.paths.fastq_filter_dir)
 
-      status "custom barcode splitting"
+      distribute_files fastq_groups, distributions
+    end
+
+    def process_custom_barcode_reads distributions
+      status "processing custom barcode reads"
+      fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
+                                       @flowcell.paths.fastq_combine_dir,
+                                       @flowcell.paths.fastq_filter_dir)
+
       custom_barcode_files = split_custom_barcodes fastq_groups
       distribute_files(custom_barcode_files, distributions) unless custom_barcode_files.empty?
-
-      status "running undetermined unaligned fastq.gz files"
-      run_undetermined_unaligned distributions
     end
 
     #
@@ -195,13 +256,11 @@ module Illuminati
 
       status "distributing export files"
       distribute_files export_groups, distributions
-      create_custom_stats_files
-      distribute_custom_stats_files distributions
-
-      create_sample_report
-      distribute_sample_report distributions
     end
 
+    #
+    # Calls SampleReportMaker to create Sample_Report.csv
+    #
     def create_sample_report
       status "creating sample_report"
       sample_report = SampleReportMaker.make(@flowcell)
@@ -210,32 +269,24 @@ module Illuminati
       end
     end
 
-    def notify_lims
-      status "notifying lims"
-
-      notifier = Illuminati::LimsNotifier.new(@flowcell)
-      notifier.upload_to_lims
-      notifier.complete_analysis
-    end
-
+    #
+    # Distriubutes Sample_Report.csv to project directories
+    #
     def distribute_sample_report distributions
       status "distributing sample_report"
       distribute_to_unique distributions, @flowcell.paths.sample_report_path
     end
 
     #
-    # Executes commands related to qc processes on fastq files.
-    # This means running fastqc and distributing the results to
-    # project directories.
+    # Sends flowcell stats to Lims
+    # and marks flowcell as complete
     #
-    def run_unaligned_qc distributions
-      status "running fastqc"
-      run_fastqc @flowcell.paths.fastq_filter_dir
+    def notify_lims
+      status "notifying lims"
 
-      status "distributing fastqc directory"
-      distribute_to_unique distributions, @flowcell.paths.fastqc_dir
-
-
+      notifier = Illuminati::LimsNotifier.new(@flowcell)
+      notifier.upload_to_lims
+      notifier.complete_analysis
     end
 
     #
@@ -424,7 +475,8 @@ module Illuminati
       end
     end
 
-    def run_undetermined_unaligned distributions
+    def process_undetermined_reads distributions
+      status "process undetermined unaligned reads"
       starting_path = @flowcell.paths.unaligned_undetermined_dir
       output_path = @flowcell.paths.unaligned_undetermined_combine_dir
       options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => false}
@@ -475,6 +527,7 @@ module Illuminati
     # output is genearted fastq_path/fastqc
     #
     def run_fastqc fastq_path
+      status "running fastqc"
       cwd = Dir.pwd
       if check_exists(fastq_path)
         command = "cd #{fastq_path};"
@@ -597,11 +650,23 @@ module Illuminati
 end
 
 if __FILE__ == $0
+
   flowcell_id = ARGV[0]
+  options = {}
+  opts = OptionParser.new do |o|
+    o.banner = "Usage: post_runner.rb [Flowcell Id] [options]"
+    o.on('-t', '--test', 'do not write out to disk') {|b| options[:test] = b}
+    o.on('-s', "--steps step1,step2,step3" , Array, 'Specify only which steps of the pipeline should be executed') {|b| options[:steps] = b.collect {|step| step} }
+    o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
+    o.on('-h', '--help', 'Displays help screen, then exits') {puts o; exit}
+  end
+
+  opts.parse!
+
   if flowcell_id
     paths = Illuminati::FlowcellPaths.new flowcell_id, TEST
     flowcell = Illuminati::FlowcellRecord.find flowcell_id, paths
-    runner = Illuminati::PostRunner.new flowcell, TEST
+    runner = Illuminati::PostRunner.new flowcell, options
     runner.run
   else
     puts "ERROR: call with flowcell id"
