@@ -102,8 +102,10 @@ module Illuminati
       distributions = []
       lims_data["samples"].each do |lims_sample_data|
         unless distributions.collect {|d| d[:lane]}.include? lims_sample_data["laneID"]
-          distribution = { :lane => lims_sample_data["laneID"], :path => lims_sample_data["resultsPath"] }
-          distributions << distribution
+          if lims_sample_data["resultsPath"]
+            distribution = { :lane => lims_sample_data["laneID"], :path => lims_sample_data["resultsPath"] }
+            distributions << distribution
+          end
         end
       end
       distributions
