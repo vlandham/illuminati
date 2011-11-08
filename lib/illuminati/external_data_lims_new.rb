@@ -20,7 +20,10 @@ module Illuminati
       script = ScriptPaths.new_lims_script
       lims_results = %x[#{script} #{flowcell_id}]
       lims_results.force_encoding("iso-8859-1")
-      data = JSON.parse(lims_results)
+      data = {"samples" => []}
+      unless lims_results =~ /^[F|f]lowcell not found/
+        data = JSON.parse(lims_results)
+      end
       data
     end
 
