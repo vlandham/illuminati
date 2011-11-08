@@ -41,7 +41,7 @@ module Illuminati
   class PostRunner
     attr_reader :flowcell
     attr_reader :options
-    ALL_STEPS = %w{unaligned custom undetermined fastqc aligned stats report qcdata}
+    ALL_STEPS = %w{unaligned custom undetermined fastqc aligned stats report qcdata lims}
 
     #
     # New PostRunner instance
@@ -203,6 +203,10 @@ module Illuminati
 
       if steps.include? "qcdata"
         distribute_to_qcdata
+      end
+
+      if steps.include? "lims"
+        notify_lims
       end
 
       stop_flowcell
