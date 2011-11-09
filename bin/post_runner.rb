@@ -170,8 +170,7 @@ module Illuminati
 
       if steps.include? "unaligned"
         # unaligned dir
-        process_unaligned_reads
-        distribute_unaligned_reads distributions
+        process_unaligned_reads distributions
       end
 
       if steps.include? "custom"
@@ -216,26 +215,18 @@ module Illuminati
     # Executes commands related to fastq.gz files including
     # filtering them and distributing them.
     #
-    def process_unaligned_reads
+    def process_unaligned_reads distributions
       status "processing unaligned"
       fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
                                        @flowcell.paths.fastq_combine_dir,
                                        @flowcell.paths.fastq_filter_dir)
       cat_files fastq_groups
       filter_fastq_files(fastq_groups, @flowcell.paths.fastq_filter_dir)
-    end
 
-    #
-    # Distributes Unaligned Reads
-    #
-    def distribute_unaligned_reads distributions
       status "distributing unaligned fastq.gz files"
-      fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
-                                       @flowcell.paths.fastq_combine_dir,
-                                       @flowcell.paths.fastq_filter_dir)
-
       distribute_files fastq_groups, distributions
     end
+
 
     def process_custom_barcode_reads distributions
       status "processing custom barcode reads"
@@ -434,7 +425,8 @@ module Illuminati
         log "# Creating directory #{distribution[:path]}"
         execute "mkdir -p #{distribution[:path]}"
 
-        distribution_groups = file_groups.select {|g| g[:lane] == distribution[:lane]}
+        distribution_groups = file_groups.select {|g| g[:lane].to_i == distribution[:lane].to_i}
+        log "# Found #{distribution_groups.size} groups"
         distribution_groups.each do |group|
           present = check_exists(group[:filter_path])
           if present
