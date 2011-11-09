@@ -1,4 +1,5 @@
 # postrun start
+# running steps: unaligned, custom, undetermined, fastqc, aligned, stats, report, qcdata, lims
 # processing unaligned
 mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/all
 # 1 fastq files found in /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Project_123
@@ -7,8 +8,10 @@ cat /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Project_123/Sample_1
 mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter
 zcat /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/all/s_1_1_NoIndex.fastq.gz | /solexa/bin/illuminati/bin/fastq_filter.rb | gzip -c > /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter/s_1_1_NoIndex.fastq.gz
 # distributing unaligned fastq.gz files
-# custom barcode splitting
-# running undetermined unaligned fastq.gz files
+# processing custom barcode reads
+mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/all
+# 1 fastq files found in /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Project_123
+# process undetermined unaligned reads
 mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/undetermined
 # 1 fastq files found in /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Undetermined_indices
 cat /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Undetermined_indices/Sample_lane_2/lane2_Undetermined_L002_R1_001.fastq.gz > /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/undetermined/s_2_1_Undetermined.fastq.gz
@@ -16,7 +19,6 @@ cat /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/Undetermined_indices
 # running fastqc
 cd /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter; /solexa/bin/illuminati/scripts/fastqc.pl -v --files "*.fastq.gz"
 cd /solexa/bin/illuminati
-# distributing fastqc directory
 # processing export files
 mkdir -p /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/all
 # 1 export files found in /solexa/bin/illuminati/spec/data/flowcell_123/Aligned/Project_123
@@ -61,5 +63,7 @@ cp -r /solexa/bin/illuminati/spec/data/flowcell_123/Unaligned/filter/fastqc /sol
 # distributing sample_report
 mkdir -p /solexa/bin/illuminati/spec/sandbox/flowcell_123
 cp -r /solexa/bin/illuminati/spec/data/flowcell_123/Sample_Report.csv /solexa/bin/illuminati/spec/sandbox/flowcell_123
+# notifying lims
+/solexa/bin/scripts/remote/lims_upload_samples.pl /solexa/bin/illuminati/spec/data/flowcell_123/lims_data.json
 cp /solexa/bin/illuminati/spec/data/flowcell_123/postrun_123.sh /solexa/bin/illuminati/spec/sandbox/flowcell_123/postrun_123.sh
 # postrun done

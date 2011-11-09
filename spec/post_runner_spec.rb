@@ -37,7 +37,7 @@ describe Illuminati::PostRunner do
     @paths = FakeFlowcell.new
     @flowcell = Illuminati::FlowcellRecord.find @paths.id, @paths
     @runner = Illuminati::PostRunner.new @flowcell
-    @runner.test = true
+    @runner.options[:test] = true
   end
 
   it "should have flowcell id" do
