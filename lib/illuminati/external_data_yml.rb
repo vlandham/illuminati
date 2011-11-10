@@ -10,10 +10,17 @@ end
 
 module Illuminati
   class ExternalDataYml
+
+    attr_accessor :filename
+
     def initialize filename
       super
-      if File.exists? filename
-        @data = Hash[YAML::load(open(filename))]
+      self.filename = filename
+    end
+
+    def load_data
+      if File.exists? self.filename
+        @data = Hash[YAML::load(open(self.filename))]
         @data = Hash.transform_keys_to_symbols(@data)
       else
         raise "ExternalDataYml: no file found #{filename}"
@@ -34,10 +41,13 @@ module Illuminati
     # }
     #
     def sample_data_for flowcell_id
+      @data || load_data
       @data[:samples] ? @data[:samples] : []
     end
 
     def distributions_for flowcell_id
+      @data || load_data
+      @data[:samples] ? @data[:samples] : []
       @data[:distributions] ? @data[:distributions] : []
     end
   end
