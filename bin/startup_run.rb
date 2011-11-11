@@ -72,10 +72,10 @@ module Illuminati
       script.write command
         script.write ""
 
-      command = "#{SCRIPT_PATH}/ngsquery.pl fc_lane_library_samples #{flowcell_id}"
+      command = "#{ScriptPaths::new_external_scripts_path}/lims_info #{flowcell_id}"
       script.write command
 
-        results = %x[#{command}]
+      results = %x[#{command}]
       results.split("\n").each {|line| script.write "# #{line}" }
 
       script.write ""
