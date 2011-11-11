@@ -57,10 +57,21 @@ module Illuminati
                                        :illumina
                                      when "CUST"
                                        :custom
+                                     when "BIOO"
+                                       :illumina
                                      else
                                        :none
                                      end
         sample_data[:barcode] = lims_sample_data["index"] || ""
+
+
+        # prevent invalid barcodes
+        if !is_valid_barcode? sample_data[:barcode]
+          sample_data[:barcode] = ""
+          sample_data[:barcode_type] = :none
+        end
+
+
         if lims_sample_data["isControl"] == 1
           lane = lims_sample_data["laneID"] || "8"
           previous_protocol ||= "eland_extended"
@@ -82,6 +93,10 @@ module Illuminati
       sample_data[:barcode_type] = :none
       sample_data[:barcode] = ""
       sample_data
+    end
+
+    def is_valid_barcode? sequence
+      sequence =~ /^[CAGTUcagtu]+$/
     end
 
     #
