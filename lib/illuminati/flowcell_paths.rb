@@ -179,7 +179,8 @@ module Illuminati
     # Location CASAVA will use to put stats files for the alignment process.
     #
     def aligned_stats_dir
-      aligned_stats_dirs[0]
+      stats_pattern = File.join(PROJECT_PATTERN, ELAND_STATS_PATTERN)
+      single_directory_in aligned_dir, stats_pattern
     end
 
     #
@@ -241,7 +242,7 @@ module Illuminati
       input_paths = directories_in base_path, directory_pattern
       if input_paths.size > 1
         puts "ERROR: multiple paths found: \n#{input_paths.inspect}"
-        raise "multiple paths found" unless @test
+        #raise "multiple paths found" unless @test
       end
       input_paths[0]
     end
@@ -254,7 +255,7 @@ module Illuminati
       input_paths = Dir.glob(File.join(base_path, directory_pattern))
       if input_paths.size < 1
         puts "ERROR: no paths found at #{base_path}/#{directory_pattern}"
-        raise "no path found" unless @test
+        #raise "no path found" unless @test
       end
       input_paths
     end
