@@ -22,8 +22,15 @@ module Illuminati
     #
     def self.make flowcell
       @flowcell = flowcell
-      @demultiplex_filename = File.join(@flowcell.paths.unaligned_stats_dir, "Demultiplex_Stats.htm")
-      @sample_summary_filename = File.join(@flowcell.paths.aligned_stats_dir, "Sample_Summary.htm")
+      @demultiplex_filename = ""
+      if @flowcell.paths.unaligned_stats_dir
+        @demultiplex_filename = File.join(@flowcell.paths.unaligned_stats_dir, "Demultiplex_Stats.htm")
+      end
+
+      @sample_summary_filename = ""
+      if @flowcell.paths.aligned_stats_dir
+        @sample_summary_filename = File.join(@flowcell.paths.aligned_stats_dir, "Sample_Summary.htm")
+      end
 
       sample_report = ["output", "lane", "sample name", "illumina index",
                        "custom barcode", "read", "reference"].join(",")
@@ -83,6 +90,8 @@ module Illuminati
       data = []
       if casava_data.empty?
         puts "ERROR: sample report maker cannot find demultiplex data for #{sample.id}"
+        data << "" << "" << ""
+        data << "" << "" << "" << ""
       else
         count = casava_data["# Reads"]
         # for paired-end reads, the casava output is the total number of reads for both
