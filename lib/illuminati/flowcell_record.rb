@@ -68,6 +68,11 @@ module Illuminati
       self.barcode_type == :illumina ? self.barcode : ""
     end
 
+    def illumina_barcode_string
+      barcode = illumina_barcode
+      barcode = barcode == "" ? "NoIndex" : barcode
+    end
+
     #
     # Returns custom barcode for sample. Empty string is returned if
     # no custom barcode used for sample.

@@ -61,7 +61,7 @@ module Illuminati
         # barcode lane data is in table[0]
         sample_summary_data[0].each do |barcode_lane_data|
           if barcode_lane_data["Lane"] == sample.lane.to_s and
-          barcode_lane_data["Barcode"] == sample.barcode_string
+          barcode_lane_data["Barcode"] == sample.illumina_barcode_string
             sample_data.merge! barcode_lane_data
             break
           end
@@ -69,7 +69,7 @@ module Illuminati
 
         read_index = read.to_i == 1 ? 1 : 2
         sample_summary_data[read_index].each do |sample_results_data|
-          if sample_results_data["Sample"] == sample.id
+          if sample_results_data["Sample"] == sample_data["Sample"]
             sample_data.merge! sample_results_data
             break
           end
@@ -91,7 +91,9 @@ module Illuminati
         html_parser = HtmlParser.new
         demultiplex_data = html_parser.table_data(@demultiplex_filename)[0]
         demultiplex_data.each do |demultiplex_sample|
-          if demultiplex_sample["Sample ID"] == sample.id
+          if demultiplex_sample["Lane"] == sample.lane.to_s and
+            demultiplex_sample["Index"] == sample.illumina_barcode_string
+
             return demultiplex_sample
           end
         end
