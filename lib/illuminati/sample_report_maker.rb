@@ -25,11 +25,17 @@ module Illuminati
       @demultiplex_filename = ""
       if @flowcell.paths.unaligned_stats_dir
         @demultiplex_filename = File.join(@flowcell.paths.unaligned_stats_dir, "Demultiplex_Stats.htm")
+      else
+        puts "ERROR: No Unaligned Stats Dir found"
+        puts "Expected: #{@flowcell.paths.unaligned_stats_dir}"
       end
 
       @sample_summary_filename = ""
       if @flowcell.paths.aligned_stats_dir
         @sample_summary_filename = File.join(@flowcell.paths.aligned_stats_dir, "Sample_Summary.htm")
+      else
+        puts "ERROR: No Aligned Stats Dir found"
+        puts "Expected: #{@flowcell.paths.aligned_stats_dir}"
       end
 
       sample_report = ["output", "lane", "sample name", "illumina index",
