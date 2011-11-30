@@ -11,7 +11,7 @@ module Illuminati
   class Sample
     # This is all the sample data expected from the external data source.
     # See documentation in ExternalDataBase for more information
-    EXTERNAL_DATA = [:lane, :genome, :name, :protocol, :barcode, :barcode_type]
+    EXTERNAL_DATA = [:lane, :genome, :name, :protocol, :barcode, :barcode_type, :raw_barcode]
     attr_accessor *EXTERNAL_DATA
 
     #

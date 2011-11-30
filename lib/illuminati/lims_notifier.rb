@@ -58,8 +58,21 @@ module Illuminati
 
     def initialize flowcell
       @flowcell = flowcell
-      @demultiplex_filename = File.join(@flowcell.paths.unaligned_stats_dir, "Demultiplex_Stats.htm")
-      @sample_summary_filename = File.join(@flowcell.paths.aligned_stats_dir, "Sample_Summary.htm")
+      @demultiplex_filename = ""
+      if @flowcell.paths.unaligned_stats_dir
+        @demultiplex_filename = File.join(@flowcell.paths.unaligned_stats_dir, "Demultiplex_Stats.htm")
+      else
+        puts "ERROR: No Unaligned Stats Dir found"
+        puts "Expected: #{@flowcell.paths.unaligned_stats_dir}"
+      end
+
+      @sample_summary_filename = ""
+      if @flowcell.paths.aligned_stats_dir
+        @sample_summary_filename = File.join(@flowcell.paths.aligned_stats_dir, "Sample_Summary.htm")
+      else
+        puts "ERROR: No Aligned Stats Dir found"
+        puts "Expected: #{@flowcell.paths.aligned_stats_dir}"
+      end
     end
 
 
@@ -105,9 +118,7 @@ module Illuminati
       lims_data["laneID"] = sample.lane
       lims_data["readNo"] = read
 
-      if sample.barcode_string != "NoIndex"
-        lims_data["index"] = sample.barcode_string
-      end
+      lims_data["index"] = sample.raw_barcode unless sample.raw_barcode == ""
 
       lims_data
     end
