@@ -7,6 +7,14 @@ module Illuminati
                         "Sample Yield (Mbases)" => :int, "Clusters (raw)" => :int,
                         "Clusters (PF)" => :int, "1st Cycle Int (PF)" => :int}
 
+    DEMULTIPLEX_FIELD_CONVERSIONS = {"Sample Ref" => "Species",
+                                     "Yield (Mbases)" => "Sample Yield (Mbases)",
+                                     "% PF" => "% PF Clusters",
+                                     "% of &gt;= Q30 Bases (PF)" => "% &gt;=Q30 bases (PF)",
+                                     "Mean Quality Score (PF)" => "Mean Quality SCore (PF)",
+                                     "# Reads" => "Clusters (raw)"
+    }
+
     attr_reader :demultiplex_stats_filename, :sample_summary_filename
     def initialize demultiplex_stats_filename, sample_summary_filename
       @demultiplex_filename = demultiplex_stats_filename || ""
@@ -16,11 +24,13 @@ module Illuminati
     def data_for sample, read
       data = {}
 
+      demultiplex_data = demultiplex_data_for_sample sample
+      data.merge!(demultiplex_data) if demultiplex_data
+
       sample_summary_data = sample_summary_data_for_sample sample, read
       data.merge!(sample_summary_data) if sample_summary_data
 
-      demultiplex_data = demultiplex_data_for_sample sample
-      data.merge!(demultiplex_data) if demultiplex_data
+
 
       convert_data(data)
 
@@ -94,7 +104,12 @@ module Illuminati
           if demultiplex_sample["Lane"] == sample.lane.to_s and
             demultiplex_sample["Index"] == sample.illumina_barcode_string
 
-            return demultiplex_sample
+            demult_data = demultiplex_sample
+            DEMULTIPLEX_FIELD_CONVERSIONS.each do |d_key, ss_key|
+              demult_data[ss_key] = demult_data[d_key]
+            end
+
+            return demult_data
           end
         end
       end

@@ -11,8 +11,10 @@ module Illuminati
   class Sample
     # This is all the sample data expected from the external data source.
     # See documentation in ExternalDataBase for more information
-    EXTERNAL_DATA = [:lane, :genome, :name, :protocol, :barcode, :barcode_type, :raw_barcode]
+    EXTERNAL_DATA = [:lane, :genome, :name, :protocol, :barcode, :barcode_type, :raw_barcode, :raw_barcode_type]
     attr_accessor *EXTERNAL_DATA
+
+    attr_accessor :parent_lane
 
     #
     # New instance of sample
@@ -20,6 +22,7 @@ module Illuminati
     def initialize
       @barcode = ""
       @lane = @genome = @name = @protocol = ""
+      @parent_lane = nil
       @barcode_type = :none
     end
 
@@ -70,6 +73,16 @@ module Illuminati
 
     def illumina_barcode_string
       barcode = illumina_barcode
+      # cases when illumina and custom barcodes are on the same lane
+      # if this isn't an illumina barcoded sample, but the lane includes
+      # an illumina barcoded sample, then set the barcode for this
+      # to be 'Undetermined'
+      # else set it to be 'NoIndex'
+      if barcode == "" and self.parent_lane and self.parent_lane.samples.size > 1 and
+        self.parent_lane.include_illumina_barcoded_sample?
+        barcode = "Undetermined"
+      end
+
       barcode = barcode == "" ? "NoIndex" : barcode
     end
 
@@ -232,6 +245,7 @@ module Illuminati
       external_sample_data.each do |sample_data|
         sample = Sample.new
         sample.add_external_data(sample_data)
+        sample.parent_lane = self
         self.samples << sample
       end
       samples.sort! do |x,y|
@@ -240,6 +254,16 @@ module Illuminati
       end
       #samples.sort! {|x,y| x.id <=> y.id}
       samples
+    end
+
+    #
+    # Returns true if at least one sample on this lane uses illumina barcodes
+    #
+    def include_illumina_barcoded_sample?
+      include_illumina = false
+      # should set include_illumina to true if at least one illumina indexed sample on lane
+      self.samples.each {|samp| include_illumina ||= (samp.barcode_type == :illumina)}
+      include_illumina
     end
 
     #

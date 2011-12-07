@@ -65,6 +65,7 @@ module Illuminati
                                      end
         sample_data[:barcode] = lims_sample_data["index"] || ""
         sample_data[:raw_barcode] = lims_sample_data["index"] || ""
+        sample_data[:raw_barcode_type] = sample_data[:barcode_type]
 
 
         # prevent invalid barcodes
