@@ -99,7 +99,11 @@ module Illuminati
     # representing sample. This can be either the illumina / custom barcode or "NoIndex"
     #
     def barcode_string
-      self.barcode.empty? ? "NoIndex" : self.barcode
+      b_string = self.custom_barcode
+      if b_string.empty?
+        b_string = self.illumina_barcode_string
+      end
+      b_string
     end
 
     #
