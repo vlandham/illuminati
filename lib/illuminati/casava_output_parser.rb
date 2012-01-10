@@ -16,6 +16,7 @@ module Illuminati
     }
 
     attr_reader :demultiplex_stats_filename, :sample_summary_filename
+
     def initialize demultiplex_stats_filename, sample_summary_filename
       @demultiplex_filename = demultiplex_stats_filename || ""
       @sample_summary_filename = sample_summary_filename || ""
@@ -30,9 +31,9 @@ module Illuminati
       sample_summary_data = sample_summary_data_for_sample sample, read
       data.merge!(sample_summary_data) if sample_summary_data
 
-
-
       convert_data(data)
+
+      process_data(data)
 
       data
     end
@@ -49,6 +50,14 @@ module Illuminati
                         data[key]
                       end
         end
+      end
+    end
+
+    def process_data data
+      # add pass filter clusters
+      if data["% PF Clusters"] and data["Clusters (raw)"] and !data["Clusters (PF)"]
+        data["Clusters (PF)"] = data["Clusters (raw)"].to_f * data["% PF Clusters"].to_f
+        data["Clusters (PF)"] = data["Clusters (PF)"].round.to_i
       end
     end
 
@@ -108,6 +117,7 @@ module Illuminati
             DEMULTIPLEX_FIELD_CONVERSIONS.each do |d_key, ss_key|
               demult_data[ss_key] = demult_data[d_key]
             end
+
 
             return demult_data
           end
