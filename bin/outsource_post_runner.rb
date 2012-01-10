@@ -10,7 +10,7 @@ require 'illuminati'
 
 module Illuminati
   class OutsourcePaths < Paths
-    OUTSOURCE_BASE = File.join("/qcdata", "Outsource")
+    OUTSOURCE_BASE = File.join("/solexa", "Outsource")
     TUFTS_BASE = File.join(OUTSOURCE_BASE, "genomics.med.tufts.edu")
     def self.base
       TUFTS_BASE
