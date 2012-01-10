@@ -69,7 +69,7 @@ module Illuminati
       sample_datas.each do |sample_data|
         data = DATA_NAMES.collect {|key| sample_data[key]}
         run_data = []
-        run_data = data_from_custom_barcode sample
+        #run_data = data_from_custom_barcode sample
         if run_data.empty?
           run_data = data_from_casava sample, sample_data[:read]
         else
@@ -99,23 +99,23 @@ module Illuminati
         data << "" << "" << ""
         data << "" << "" << "" << ""
       else
-        count = casava_data["# Reads"]
+
+        count = casava_data["Clusters (raw)"]
+        pass_filter_count = casava_data["Clusters (PF)"]
+        percent = casava_data["% PF Clusters"]
+        percent_align = casava_data["% Align (PF)"]
+        type = (sample.read_count == 1) ? "single" : "paired"
+
         # for paired-end reads, the casava output is the total number of reads for both
         # ends. So we divide by 2 to get the number of reads for individual reads.
-        if sample.read_count == 2
-          count = (count.to_f / 2).round.to_i.to_s
-        end
+        # if sample.read_count == 2
+          # count = (count.to_f / 2).round.to_i
+          # pass_filter_count = (pass_filter_count.to_f / 2).round.to_i
+        # end
         data << count.to_s
-        percent = casava_data["% PF"]
-        count_num = count.to_f
-        percent_num = percent.to_f
-        pass_filter_count = (count_num * (percent_num / 100.0)).round
         data << pass_filter_count.to_s
         data << percent
-
-        percent_align = casava_data["% Align (PF)"]
         data << percent_align
-        type = (casava_data["Analysis Type"] == "eland extended") ? "single" : "paired"
         data << type
         data << casava_data["Length"]
       end
