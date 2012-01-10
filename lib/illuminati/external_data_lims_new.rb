@@ -99,7 +99,7 @@ module Illuminati
     end
 
     def is_valid_barcode? sequence
-      sequence =~ /^[CAGTUcagtu]+$/
+      (sequence =~ /^[CAGTUcagtu]+$/) and (sequence.length > 5)
     end
 
     #
