@@ -56,7 +56,7 @@ module Illuminati
     def process_data data
       # add pass filter clusters
       if data["% PF Clusters"] and data["Clusters (raw)"] and !data["Clusters (PF)"]
-        data["Clusters (PF)"] = data["Clusters (raw)"].to_f * data["% PF Clusters"].to_f
+        data["Clusters (PF)"] = data["Clusters (raw)"].to_f * (data["% PF Clusters"].to_f / 100.0)
         data["Clusters (PF)"] = data["Clusters (PF)"].round.to_i
       end
     end
