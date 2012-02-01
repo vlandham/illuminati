@@ -154,10 +154,11 @@ module Illuminati
         count = casava_data["# Reads"]
         # for paired-end reads, the casava output is the total number of reads for both
         # ends. So we divide by 2 to get the number of reads for individual reads.
-        if sample.read_count == 2
-          count = (count.to_f / 2).round.to_i.to_s
-          casava_data["# Reads"] = count
-        end
+        
+        # if sample.read_count == 2
+        #   count = (count.to_f / 2).round.to_i.to_s
+        #   casava_data["# Reads"] = count
+        # end
 
         # convert to lims names
         CASAVA_TO_LIMS.each do |casava_key, lims_key|
