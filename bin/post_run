@@ -14,6 +14,7 @@ module Illuminati
   class TuftsOutsourcePaths < Paths
     OUTSOURCE_BASE = File.join("/solexa", "Outsource")
     TUFTS_BASE = File.join(OUTSOURCE_BASE, "genomics.med.tufts.edu")
+
     def self.base
       TUFTS_BASE
     end
@@ -23,7 +24,8 @@ end
 module Illuminati
   class GtacOutsourcePaths < Paths
     OUTSOURCE_BASE = File.join("/solexa", "Outsource")
-    	GTAC_BASE = File.join(OUTSOURCE_BASE, "cgs.wustl.edu", "solexa")
+    GTAC_BASE = File.join(OUTSOURCE_BASE, "cgs.wustl.edu", "solexa")
+
     def self.base
       GTAC_BASE
     end
