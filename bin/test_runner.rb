@@ -33,7 +33,7 @@ if __FILE__ == $0
     runner.run
   else
     puts "ERROR: call with flowcell id"
-    puts "       post_runner.rb [FLOWCELL_ID]"
+    puts "       post_run [FLOWCELL_ID]"
   end
 end
 

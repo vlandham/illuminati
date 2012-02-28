@@ -38,6 +38,6 @@ if __FILE__ == $0
     runner.run
   else
     puts "ERROR: call with flowcell id"
-    puts "       post_runner.rb [FLOWCELL_ID]"
+    puts "       outsource_post_runner.rb [FLOWCELL_ID]"
   end
 end

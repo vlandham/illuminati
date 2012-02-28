@@ -11,13 +11,33 @@ FILTER_SCRIPT = File.join(BASE_BIN_DIR, "fastq_filter.rb")
 TEST = false
 
 module Illuminati
-  class OutsourcePaths < Paths
+  class TuftsOutsourcePaths < Paths
     OUTSOURCE_BASE = File.join("/solexa", "Outsource")
     TUFTS_BASE = File.join(OUTSOURCE_BASE, "genomics.med.tufts.edu")
     def self.base
       TUFTS_BASE
     end
   end
+end
+
+module Illuminati
+  class GtacOutsourcePaths < Paths
+    OUTSOURCE_BASE = File.join("/solexa", "Outsource")
+    	GTAC_BASE = File.join(OUTSOURCE_BASE, "cgs.wustl.edu", "solexa")
+    def self.base
+      GTAC_BASE
+    end
+  end
+end
+
+def get_outsource_paths facility_name
+	if facility_name == "tufts"
+		Illuminati::TuftsOutsourcePaths
+	elsif facility_name == "gtac"
+		Illuminati::GtacOutsourcePaths
+	else
+		Illuminati::TuftsOutsourcePaths
+	end
 end
 
 module Illuminati
@@ -667,7 +687,7 @@ if __FILE__ == $0
   opts = OptionParser.new do |o|
     o.banner = "Usage: post_runner.rb [Flowcell Id] [options]"
     o.on('-t', '--test', 'do not write out to disk') {|b| options[:test] = b}
-    o.on('-o', '--outsource', 'indicate flowcell is outsourced') {|b| options[:paths] = Illuminati::OutsourcePaths}
+    o.on('-o', '--outsource OUT_FACILITY', String, 'Specify outsource facility') {|b| puts b; options[:paths] = get_outsource_paths(b)}
     o.on('-s', "--steps #{Illuminati::PostRunner::ALL_STEPS.join(",")}" , Array, 'Specify only which steps of the pipeline should be executed') {|b| options[:steps] = b.collect {|step| step} }
     o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
     o.on('-h', '--help', 'Displays help screen, then exits') {puts o; exit}

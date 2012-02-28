@@ -3,7 +3,7 @@
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
-POSTRUN_SCRIPT = File.join(BASE_BIN_DIR, "post_runner.rb")
+POSTRUN_SCRIPT = File.join(BASE_BIN_DIR, "post_run")
 
 require 'illuminati'
 
