@@ -30,9 +30,9 @@ module Illuminati
         puts "Expected: #{@flowcell.paths.unaligned_stats_dir}"
       end
 
-      @sample_summary_filename = ""
-      if @flowcell.paths.aligned_stats_dir
-        @sample_summary_filename = File.join(@flowcell.paths.aligned_stats_dir, "Sample_Summary.htm")
+      @sample_summary_filenames = []
+      if @flowcell.paths.aligned_stats_dirs
+        @sample_summary_filenames = @flowcell.paths.aligned_stats_dirs.collect {|dir| File.join(dir, "Sample_Summary.htm") }
       else
         puts "ERROR: No Aligned Stats Dir found"
         puts "Expected: #{@flowcell.paths.aligned_stats_dir}"
@@ -91,7 +91,7 @@ module Illuminati
     # Return value is a string. nil is returned if count cannot be found.
     #
     def self.data_from_casava sample, read
-      parser = CasavaOutputParser.new(@demultiplex_filename, @sample_summary_filename)
+      parser = CasavaOutputParser.new(@demultiplex_filename, @sample_summary_filenames)
       casava_data = parser.data_for(sample, read)
       data = []
       if casava_data.empty?

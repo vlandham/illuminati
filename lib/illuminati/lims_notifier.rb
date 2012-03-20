@@ -66,9 +66,9 @@ module Illuminati
         puts "Expected: #{@flowcell.paths.unaligned_stats_dir}"
       end
 
-      @sample_summary_filename = ""
-      if @flowcell.paths.aligned_stats_dir
-        @sample_summary_filename = File.join(@flowcell.paths.aligned_stats_dir, "Sample_Summary.htm")
+      @sample_summary_filenames = []
+      if @flowcell.paths.aligned_stats_dirs
+        @sample_summary_filenames = @flowcell.paths.aligned_stats_dirs.collect {|dir| File.join(dir, "Sample_Summary.htm") }
       else
         puts "ERROR: No Aligned Stats Dir found"
         puts "Expected: #{@flowcell.paths.aligned_stats_dir}"
@@ -144,7 +144,7 @@ module Illuminati
     end
 
     def get_casava_data sample, read
-      parser = CasavaOutputParser.new(@demultiplex_filename, @sample_summary_filename)
+      parser = CasavaOutputParser.new(@demultiplex_filename, @sample_summary_filenames)
       casava_data = {}
       lims_data = lims_data_for(sample, read)
       casava_data = parser.data_for(sample, read)
@@ -154,7 +154,7 @@ module Illuminati
         count = casava_data["# Reads"]
         # for paired-end reads, the casava output is the total number of reads for both
         # ends. So we divide by 2 to get the number of reads for individual reads.
-        
+
         # if sample.read_count == 2
         #   count = (count.to_f / 2).round.to_i.to_s
         #   casava_data["# Reads"] = count

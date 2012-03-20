@@ -155,6 +155,10 @@ module Illuminati
       single_directory_in aligned_dir, PROJECT_PATTERN
     end
 
+    def aligned_project_dirs
+      directories_in aligned_dir, PROJECT_PATTERN
+    end
+
     #
     # Location that Illuminati will use to rename and combine
     # export files.
