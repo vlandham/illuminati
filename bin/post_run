@@ -32,11 +32,24 @@ module Illuminati
   end
 end
 
+module Illuminati
+  class SeqWrightOutsourcePaths < Paths
+    OUTSOURCE_BASE = File.join("/solexa", "Outsource")
+    SEQ_WRIGHT_BASE = File.join(OUTSOURCE_BASE, "seq_wright")
+
+    def self.base
+      SEQ_WRIGHT_BASE
+    end
+  end
+end
+
 def get_outsource_paths facility_name
 	if facility_name == "tufts"
 		Illuminati::TuftsOutsourcePaths
 	elsif facility_name == "gtac"
 		Illuminati::GtacOutsourcePaths
+  elsif facility_name == "wright"
+    Illuminati::SeqWrightOutsourcePaths
 	else
 		Illuminati::TuftsOutsourcePaths
 	end
@@ -276,13 +289,56 @@ module Illuminati
     #
     def run_aligned distributions
       status "processing export files"
-      export_groups = group_export_files(@flowcell.paths.aligned_project_dir,
+      aligned_project_dir = get_aligned_project_dir
+      export_groups = group_export_files(aligned_project_dir,
                                          @flowcell.paths.eland_combine_dir,
                                          @flowcell.paths.eland_combine_dir)
       cat_files export_groups
 
       status "distributing export files"
       distribute_files export_groups, distributions
+    end
+
+    def get_aligned_project_dir
+      project_dir = ""
+      dirs = @flowcell.paths.aligned_project_dirs
+      if dirs.size == 0
+        puts "ERROR: No Aligned Project dir found for #{@flowcell.id}"
+        raise "NO ALIGNED PROJECT DIR"
+      elsif dirs.size == 1
+        project_dir = dirs.shift
+      else
+        projects_with_samples = []
+        dirs.each do |dir|
+          sample_dirs = Dir.glob(File.join(dir, "Sample_*"))
+          if sample_dirs.size > 0
+            projects_with_samples << dir
+          end
+        end
+
+        if projects_with_samples.size == 0
+          puts "ERROR: No Sample Directories Found in:"
+          puts dirs.join(", ")
+          raise "NO SAMPLES IN PROJECT DIR"
+        elsif projects_with_samples.size == 1
+          project_dir = projects_with_samples.shift
+          puts "WARNING: All Sample Dirs in #{project_dir}"
+        else
+          final_project_dir = File.join(@flowcell.paths.aligned_dir, "Project_#{@flowcell.id}")
+          puts "WARNING: Combining export files in #{final_project_dir}"
+          system("mkdir -p #{final_project_dir}")
+          projects_with_samples.each do |sample_project|
+            sample_dirs = Dir.glob(File.join(sample_project, "Sample_*"))
+            sample_dirs.each do |sample_dir|
+              system("mv #{sample_dir} #{final_project_dir}")
+            end
+          end
+          project_dir = final_project_dir
+        end
+        puts project_dir
+        project_dir
+      end
+
     end
 
     #
