@@ -227,7 +227,9 @@ module Illuminati
       end
 
       if steps.include? "fastqc"
-        run_fastqc @flowcell.paths.fastq_filter_dir
+        unless @options[:only_distribute]
+          run_fastqc @flowcell.paths.fastq_filter_dir
+        end
         distribute_to_unique distributions, @flowcell.paths.fastqc_dir
       end
 
@@ -265,8 +267,10 @@ module Illuminati
       fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
                                        @flowcell.paths.fastq_combine_dir,
                                        @flowcell.paths.fastq_filter_dir)
-      cat_files fastq_groups
-      filter_fastq_files(fastq_groups, @flowcell.paths.fastq_filter_dir)
+      unless @options[:only_distribute]
+        cat_files fastq_groups
+        filter_fastq_files(fastq_groups, @flowcell.paths.fastq_filter_dir)
+      end
 
       status "distributing unaligned fastq.gz files"
       distribute_files fastq_groups, distributions
@@ -278,7 +282,6 @@ module Illuminati
       fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
                                        @flowcell.paths.fastq_combine_dir,
                                        @flowcell.paths.fastq_filter_dir)
-
       custom_barcode_files = split_custom_barcodes fastq_groups
       distribute_files(custom_barcode_files, distributions) unless custom_barcode_files.empty?
     end
@@ -293,7 +296,9 @@ module Illuminati
       export_groups = group_export_files(aligned_project_dir,
                                          @flowcell.paths.eland_combine_dir,
                                          @flowcell.paths.eland_combine_dir)
-      cat_files export_groups
+      unless @options[:only_distribute]
+        cat_files export_groups
+      end
 
       status "distributing export files"
       distribute_files export_groups, distributions
@@ -568,7 +573,10 @@ module Illuminati
       options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => false}
 
       fastq_file_groups = group_fastq_files starting_path, output_path, output_path, options
-      cat_files fastq_file_groups
+
+      unless @options[:only_distribute]
+        cat_files fastq_file_groups
+      end
 
       status "distributing unaligned undetermined fastq.gz files"
       distribute_files fastq_file_groups, distributions
@@ -713,7 +721,7 @@ module Illuminati
     def get_file_data files, suffix_pattern = "\.fastq\.gz"
       files = [files].flatten
 
-      $NAME_PATTERN = /(.*)_([ATCG]+|NoIndex|Undetermined)_L(\d{3})_R(\d)_(\d{3})#{suffix_pattern}/
+      $NAME_PATTERN = /(.*)_([ATCGN]+|NoIndex|Undetermined)_L(\d{3})_R(\d)_(\d{3})#{suffix_pattern}/
       # 1_ACTTGA_ACTTGA_L001_R1_002.fastq.gz
       # $1 = "1_ACTTGA"
       # $2 = "ACTTGA"
@@ -745,6 +753,7 @@ if __FILE__ == $0
   opts = OptionParser.new do |o|
     o.banner = "Usage: post_runner.rb [Flowcell Id] [options]"
     o.on('-t', '--test', 'do not write out to disk') {|b| options[:test] = b}
+    o.on('-d', '--only_distribute', 'only distribute. no processing') {|b| options[:only_distribute] = true}
     o.on('-o', '--outsource OUT_FACILITY', String, 'Specify outsource facility') {|b| puts b; options[:paths] = get_outsource_paths(b)}
     o.on('-s', "--steps #{Illuminati::PostRunner::ALL_STEPS.join(",")}" , Array, 'Specify only which steps of the pipeline should be executed') {|b| options[:steps] = b.collect {|step| step} }
     o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
