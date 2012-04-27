@@ -15,7 +15,7 @@ module Illuminati
     end
 
     def self.set_defaults config
-      config['casava_path']         ||= '/home/solexa/CASAVA_1.8.1/bin'
+      config['casava_path']         ||= '/home/solexa/CASAVA_1.8.2/bin'
       config['email_list']          ||= ['jfv@stowers.org']
       config['qc_path']             ||= '/qcdata'
       config['script_path']         ||= '/solexa/bin/scripts'
