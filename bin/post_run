@@ -55,6 +55,12 @@ def get_outsource_paths facility_name
 	end
 end
 
+def get_manual_paths manual_path
+   paths = Illuminati::Paths
+   paths.set_base manual_path
+   paths
+end
+
 module Illuminati
   #
   # The most complicated and least well implemented of the Illuminati classes.
@@ -209,7 +215,11 @@ module Illuminati
     #
     def run
       start_flowcell
-      distributions = @flowcell.external_data.distributions_for @flowcell.id
+      distributions = []
+
+      unless @options[:no_distribute]
+        distributions = @flowcell.external_data.distributions_for @flowcell.id
+      end
       steps = @options[:steps]
       status "running steps: #{steps.join(", ")}"
 
@@ -272,8 +282,10 @@ module Illuminati
         filter_fastq_files(fastq_groups, @flowcell.paths.fastq_filter_dir)
       end
 
-      status "distributing unaligned fastq.gz files"
-      distribute_files fastq_groups, distributions
+      unless @options[:no_distribute]
+        status "distributing unaligned fastq.gz files"
+        distribute_files fastq_groups, distributions
+      end
     end
 
 
@@ -578,8 +590,10 @@ module Illuminati
         cat_files fastq_file_groups
       end
 
-      status "distributing unaligned undetermined fastq.gz files"
-      distribute_files fastq_file_groups, distributions
+      unless @options[:no_distribute]
+        status "distributing unaligned undetermined fastq.gz files"
+        distribute_files fastq_file_groups, distributions
+      end
     end
 
     #
@@ -754,7 +768,10 @@ if __FILE__ == $0
     o.banner = "Usage: post_runner.rb [Flowcell Id] [options]"
     o.on('-t', '--test', 'do not write out to disk') {|b| options[:test] = b}
     o.on('-d', '--only_distribute', 'only distribute. no processing') {|b| options[:only_distribute] = true}
+    o.on('-n', '--no_distribute', 'No distribute. only processing') {|b| options[:no_distribute] = true}
+
     o.on('-o', '--outsource OUT_FACILITY', String, 'Specify outsource facility') {|b| puts b; options[:paths] = get_outsource_paths(b)}
+    o.on('-p', '--path /file/path', String, 'Manually specify the flowcell file path') {|b| options[:paths] = get_manual_paths(b)}
     o.on('-s', "--steps #{Illuminati::PostRunner::ALL_STEPS.join(",")}" , Array, 'Specify only which steps of the pipeline should be executed') {|b| options[:steps] = b.collect {|step| step} }
     o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
     o.on('-h', '--help', 'Displays help screen, then exits') {puts o; exit}

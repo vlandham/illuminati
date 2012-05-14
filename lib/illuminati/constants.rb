@@ -82,8 +82,13 @@ end
 
 module Illuminati
   class Paths
+    @@base = nil
     def self.base
-      FLOWCELL_PATH_BASE
+      @@base || FLOWCELL_PATH_BASE
+    end
+
+    def self.set_base new_base
+      @@base = new_base
     end
   end
 end
