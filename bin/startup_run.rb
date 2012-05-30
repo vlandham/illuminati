@@ -72,7 +72,7 @@ module Illuminati
       script.write command
         script.write ""
 
-      command = "#{ScriptPaths::new_external_scripts_path}/lims_info #{flowcell_id}"
+      command = "#{ScriptPaths::lims_info} #{flowcell_id}"
       script.write command
 
       results = %x[#{command}]
