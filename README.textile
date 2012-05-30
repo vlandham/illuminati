@@ -48,15 +48,14 @@ h2. Requirements
 ** This is run by the @fastqc.pl@ script - located in the @scripts@ directory. 
 * *image magick* - the fastqc.pl script also uses the @convert@ tool of Image Magick to process the images created by fastqc. Expected to be on the path.
 * *fastx_barcode_splitter.pl* - needs to be availible from command line
-* *ngsquery.pl* - the most troublesome external dependency. ngsquery.pl should sit in the @SCRIPT_PATH@ directory. It is a perl script that connects to our LIMS system and provides flowcell and distribution information back to Illuminati. Future work will be to eliminate or reduce this external dependency. 
+* *lims_data.pl* - the most troublesome external dependency. lims_data.pl should sit in the @SCRIPT_PATH@ directory. It is a perl script that connects to our LIMS system and provides flowcell and distribution information back to Illuminati. Future work will be to eliminate or reduce this external dependency. 
 ** *NOTE* - There is a crude work-around for not needing this LIMS connection. See *External Data* below.
 * *Custom Directory Structure* - By default, Illuminati expects a certain directory structure to be in place to be able to run correctly. @lib/illuminati/config.rb@ describes the default path structure, with @lib/illuminati/constants.rb@ providing some description of how these paths are used. Configuration of the paths and other options used by Illuminati can be done by creating a config file and setting the @ENV@ variable @ILLUMINATI_CONFIG@ to point to that path. See @assests/example.config.yaml@ for a starting point for the config file.
 
 h2. Using Illuminati
 
 To use Illuminati, you need a few things in place:
-* Flowcell data is in LIMS system and data provided by @ngsquery.pl@ is correct.
-* If the Flowcell is multiplexed, a @SampleMultiplex.csv@ file is present in the flowcells base directory (see below for more on @SampleMultiplex.csv@.
+* Flowcell data is in LIMS system and data provided by @lims_data.pl@ is correct.
 
 Once things are in order, running Illuminati should be a three step process:
 
@@ -82,11 +81,10 @@ less 639AXXPY.sh
 
 First, you should see output from the LIMS system about the data of each of the flowcell's lanes. This is the data that will be used to create the @SampleSheet.csv@ and @config.txt@, so its important that its right. 
 
-Then comes the @SampleSheet.csv@ output. If a @SampleMultiplex.csv@ is found for the flowcell, the data in this file is used to build up the barcodes and sample names for the flowcell (@SampleMultiplex.csv@ is required as our LIMS system doesn't currently support barcoded lanes). If no @SampleMultiplex.csv@ is found, a warning is generated and the @SampleSheet.csv@ is generated as if none of the lanes are multiplexed. This is fine, as long as it is actually the truth.
+Then comes the @SampleSheet.csv@ output. 
 
 Next, you will see the output that will go into the @config.txt@ file. Check this over and ensure the output doesn't include errors about missing genomes or otehr information.
 
-If there is a @SampleMultiplex.csv@ and it contains custom barcode info, then @custom_barcode.txt@ files will be made for the lanes that need them. If not, then messages will be produced indicating that no custom barcodes were found for the flowcell.
 
 Finally, the admin script contains the shell commands that will kick off CASAVA with the files to be generated. You can see that there is a  @POST_RUN_COMMAND@ in the make command that will automate the next step, alignment. However, if everything goes as planned (like it always does), then you won't really need to deal with anything but this file.
 
@@ -122,7 +120,6 @@ The post run functionality is contained in @bin/post_runner.rb@. Its an elaborat
 * use @cat@ to combine the multiple fastq.gz files that CASAVA makes into one for each lane / sample.
 * use @zcat@ and the @bin/fastq_filter.rb@ script to filter out reads that don't pass filter.
 * split lanes with custom barcodes using @fastx_barcode_splitter.pl@.
-** only if lanes have been custom barcoded, and indicated as such in SampleMultiplex.csv.
 * distribute fastq.gz files to their project directories.
 * run fastqc on the filtered fastq.gz files and distribute the results.
 * create Sample_Report.csv to summarize the sample data
@@ -142,7 +139,7 @@ CASAVA's make output for the bcl conversion and align steps are captured in thei
 
 h2. External Data
 
-If you want to avoid using the @ngsquery.pl@ script or other external LIMS systems, you can do so by creating an @external_data.yml@ file and placing it in the flowcell's root directory. 
+If you want to avoid using the @lims_data.pl@ script or other external LIMS systems, you can do so by creating an @external_data.yml@ file and placing it in the flowcell's root directory. 
 
 Essentially, the @external_data.yml@ contains all the required information about the samples on a run. As described in ExternalDataBase.rb, these required fields are:
 
@@ -236,60 +233,6 @@ Example external_data.yml file:
 </pre>
 
 See the specs for @ExternalDataYml@ for details.
-
-h2. SampleMultiplex.csv
-
-*NOTE:* @SampleMultiplex.csv@ is a work around for our current LIMS system not being able to handle sample-specific information like barcodes. A new LIMS system is in development which will render @SampleMultiplex.csv@ *obsolete*. Documentation will be modified once the new system is live, however most of the functionality for using the new LIMS system can be found in @lib/illuminati/external_data_lims_new.rb@. Future work includes being able to specify which external data source should be used through configuration.
-
-The @SampleMultiplex.csv@ format is geared to provide Illuminati with the minimum amount of info that it can't get from LIMS, and nothing else. As such, it just contains lane, sample name, Illumina barcodes, and custom barcodes.
-
-Currently it is generated by hand by Molecular Biology. If one is not provided, either it is a mistake, or the flowcell is assumed to not have any multiplexed lanes.
-
-Here's an example of a @SampleMultiplex.csv@ with Illumina indexes:
-
-<pre>
-Lane,Sample Name,Illumina Index,Custom Barcode Sequence
-1,dot1-wce,CAGATC,
-1,dot1-IP,ACTTGA,
-1,dot1fus3-wce,GATCAG,
-1,dot1fus3-IP,TAGCTT,
-1,dot1tda1-wce,GGCTAC,
-1,dot1tda1-IP,CTTGTA,
-2,dot1-wce,CAGATC,
-2,dot1-IP,ACTTGA,
-2,dot1fus3-wce,GATCAG,
-2,dot1fus3-IP,TAGCTT,
-2,dot1tda1-wce,GGCTAC,
-2,dot1tda1-IP,CTTGTA,
-3,WT-wce,ATCACG,
-3,WT-IP,CGATGT,
-3,K79A-wce,TTAGGC,
-3,K79A-IP,TGACCA,
-3,K79R-wce,ACAGTG,
-3,K79R-IP,GCCAAT,
-4,WT-wce,ATCACG,
-4,WT-IP,CGATGT,
-4,K79A-wce,TTAGGC,
-4,K79A-IP,TGACCA,
-4,K79R-wce,ACAGTG,
-4,K79R-IP,GCCAAT,
-5,T80A-wce,CAGATC,
-5,T80A-IP,ACTTGA,
-5,T80D-wce,GATCAG,
-5,T80D-IP,TAGCTT,
-5,T80E-wce,GGCTAC,
-5,T80E-IP,CTTGTA,
-6,T80A-wce,CAGATC,
-6,T80A-IP,ACTTGA,
-6,T80D-wce,GATCAG,
-6,T80D-IP,TAGCTT,
-6,T80E-wce,GGCTAC,
-6,T80E-IP,CTTGTA,
-7,9.5dpc_HoxB1_IP,,
-8,PhiX,,
-</pre>
-
-If a @SampleMultiplex.csv@ has Illumina indexes and custom barcodes for the same lane, then it is probably a mistake (I hope they aren't trying to multiplex custom barcoded samples...).
 
 h2. CASAVA 1.8 Directory Structure
 
