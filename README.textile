@@ -52,6 +52,15 @@ h2. Requirements
 ** *NOTE* - There is a crude work-around for not needing this LIMS connection. See *External Data* below.
 * *Custom Directory Structure* - By default, Illuminati expects a certain directory structure to be in place to be able to run correctly. @lib/illuminati/config.rb@ describes the default path structure, with @lib/illuminati/constants.rb@ providing some description of how these paths are used. Configuration of the paths and other options used by Illuminati can be done by creating a config file and setting the @ENV@ variable @ILLUMINATI_CONFIG@ to point to that path. See @assests/example.config.yaml@ for a starting point for the config file.
 
+h2. Outsourced Orders
+
+Frequently, we deal with flowcells processed from outsourcing centers and the resulting data returned to us. Each outsourcing center has their own way of doing things which results in their own tweaks and gotchas in the returned data.
+
+Illuminati can handle outsourced data, but does not attempt to deal with all the nuances of the particular facility. It expects that the outsourced data flowcell directory has the @Unaligned@ and @Aligned@ sub-directories setup as if they came out of a flowcell run. 
+
+If this is satisfied, then the @bin/post_run@ command can be used to process outsourced orders using the @-o@ flag.
+
+
 h2. Using Illuminati
 
 To use Illuminati, you need a few things in place:
@@ -116,7 +125,7 @@ h4. Post Run
 
 The alignment's make command contains another @POST_RUN_COMMAND@ which starts up the final part of the primary analysis pipeline: the post run. 
 
-The post run functionality is contained in @bin/post_runner.rb@. Its an elaborate maze of fun. But hopefully the method names at least hint at what is going on. Briefly, this script does the following:
+The post run functionality is contained in @bin/post_run@. Its an elaborate maze of fun. But hopefully the method names at least hint at what is going on. Briefly, this script does the following:
 * use @cat@ to combine the multiple fastq.gz files that CASAVA makes into one for each lane / sample.
 * use @zcat@ and the @bin/fastq_filter.rb@ script to filter out reads that don't pass filter.
 * split lanes with custom barcodes using @fastx_barcode_splitter.pl@.
@@ -127,13 +136,17 @@ The post run functionality is contained in @bin/post_runner.rb@. Its an elaborat
 * combine export files using @cat@ and distribute these files.
 * distribute relevant qa / qc and stats files to the appropriate qcdata directory.
 
+The @post_run@ tool has a lot of options if you want to run it manually, for outsourced orders, or to repeat a portion of the run.
+
+Use @bin/post_run -h@ to get a list of options to use.
+
 h4. Email & Logging
 
 You also get emails along the way. Check out the @EMAIL_LIST@ in @lib/illuminati/constants.rb@ to see who gets emailed. 
 
 A log file is also created for each flowcell in @/solexa/runs/log@. This will be used for future dashboard-style awesome-ness.
 
-@align_runner.rb@ and @post_runner.rb@ also generate log files during their execution. If @post_runner.rb@ completes, it will produce a shell script with all the commands it did, so that theoretically, you could run it again if you wanted.
+@align_runner.rb@ and @post_run@ also generate log files during their execution. If @post_run@ completes, it will produce a shell script with all the commands it did, so that theoretically, you could run it again if you wanted.
 
 CASAVA's make output for the bcl conversion and align steps are captured in their own make.out files.
 
@@ -236,7 +249,7 @@ See the specs for @ExternalDataYml@ for details.
 
 h2. CASAVA 1.8 Directory Structure
 
-CASAVA 1.8 has a pretty different structure for where it puts data now. Plus, the @post_runner.rb@ script creates some custom directories to do its job. Here's an overview of the directories relevant to the primary analysis pipeline:
+CASAVA 1.8 has a pretty different structure for where it puts data now. Plus, the @post_run@ script creates some custom directories to do its job. Here's an overview of the directories relevant to the primary analysis pipeline:
 
 <pre>
 _ FLOWCELL_BASE_DIR
