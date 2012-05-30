@@ -9,9 +9,6 @@ module Illuminati
   EMAIL_LIST          = config['email_list']
   # Path to put quality control files in.
   QC_PATH             = File.expand_path config['qc_path']
-  # Location of external scripts that are needed by Illuminati.
-  SCRIPT_PATH         = File.expand_path config['script_path']
-
 
   # Location where startup scripts will be placed.
   ADMIN_PATH          = File.expand_path config['admin_path']
@@ -60,7 +57,7 @@ module Illuminati
       File.join(internal_scripts_path, "lims_info")
     end
 
-    def self.new_lims_script
+    def self.lims_data
       File.join(internal_scripts_path, "lims_data.pl")
     end
 

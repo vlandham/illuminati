@@ -9,14 +9,7 @@ describe 'illuminati scripts' do
     results.should match(/^usage/)
   end
 
-  it "should have the lims query script present" do
-    flowcell_id = "64E5MAAXX"
-    File.exists?(Illuminati::ScriptPaths.lims_script).should == true
-    results = %x[perl #{Illuminati::ScriptPaths.lims_script} fc_lane_library_samples #{flowcell_id}]
-    results.should match(/^#{flowcell_id}/)
-  end
-
   it "should have the new lims query script present" do
-    File.exists?(Illuminati::ScriptPaths.new_lims_script).should == true
+    File.exists?(Illuminati::ScriptPaths.lims_data).should == true
   end
 end

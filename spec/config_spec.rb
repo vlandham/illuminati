@@ -7,9 +7,9 @@ describe Illuminati::Config do
       @config = Illuminati::Config.parse_config
     end
     it "should load defaults with no config present" do
-      @config['qc_path'].should == '/qcdata'
+      @config['qc_path'].should == '/n/ngs/qcdata'
       @config['fastq_filter_path'].should == 'filter'
-      @config['casava_path'].should == '/home/solexa/CASAVA_1.8.1/bin'
+      # @config['casava_path'].should == '/home/solexa/CASAVA_1.8.1/bin'
     end
   end
 

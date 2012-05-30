@@ -2,10 +2,11 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 require 'illuminati/casava_output_parser'
 
 class FakeSample
-  attr_accessor :lane, :barcode_string
+  attr_accessor :lane, :barcode_string, :illumina_barcode_string
   def initialize(lane, barcode)
     self.lane = lane
     self.barcode_string = barcode
+    self.illumina_barcode_string = barcode
   end
   def id
     "#{lane}_#{barcode_string}"

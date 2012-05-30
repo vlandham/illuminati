@@ -17,7 +17,7 @@ module Illuminati
     # == Returns:
     #
     def data_for flowcell_id
-      script = ScriptPaths.new_lims_script
+      script = ScriptPaths.lims_data
       lims_results = %x[#{script} #{flowcell_id}]
       lims_results.force_encoding("iso-8859-1")
       data = {"samples" => []}

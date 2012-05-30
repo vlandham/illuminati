@@ -1,6 +1,6 @@
 require 'yaml'
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
-require 'post_runner'
+require File.expand_path(File.dirname(__FILE__) + '/../bin/post_run')
 
 class FakeFlowcell
   attr_accessor :base_dir, :unaligned_dir, :id, :qc_dir, :unaligned_stats_dir, :aligned_dir, :aligned_stats_dir, :fastqc_dir, :unaligned_project_dir, :aligned_project_dir, :fastq_combine_dir, :fastq_filter_dir, :eland_combine_dir, :unaligned_undetermined_dir, :unaligned_undetermined_combine_dir, :custom_stats_dir, :sample_report_path

@@ -7,7 +7,7 @@ describe "constants" do
     before(:each) do
     end
     it "should define constants" do
-      Illuminati::CASAVA_PATH.should == '/home/solexa/CASAVA_1.8.1/bin'
+      Illuminati::BASECALLS_PATH.should == File.join('Data', 'Intensities', 'BaseCalls')
     end
   end
 end

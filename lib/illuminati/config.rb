@@ -6,8 +6,13 @@ module Illuminati
     def self.parse_config
       base_config = {}
       begin
-        base_config = YAML.load_file(( ENV['ILLUMINATI_CONFIG'] or 'config.yaml' or
-                                      File.join(File.basename(__FILE__), "..", "..", "assests", "config.yaml" ))
+        if ENV['ILLUMINATI_CONFIG']
+          base_config = YAML.load_file(ENV['ILLUMINATI_CONFIG'])
+        elsif File.exists?('config.yaml')
+          base_config = YAML.load_file('config.yaml')
+        # elsif File.exists?(File.join(File.dirname(__FILE__), "..", "..", "assests", "config.yaml" ))
+        #   base_config = YAML.load_file(File.join(File.dirname(__FILE__), "..", "..", "assests", "config.yaml" ))
+        end
       rescue Errno::ENOENT
         puts 'config.yaml not found - will assume default settings'
       end
