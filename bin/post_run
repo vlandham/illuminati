@@ -10,55 +10,15 @@ FILTER_SCRIPT = File.join(BASE_BIN_DIR, "fastq_filter.rb")
 
 TEST = false
 
-module Illuminati
-  class TuftsOutsourcePaths < Paths
-    OUTSOURCE_BASE = File.join("/solexa", "Outsource")
-    TUFTS_BASE = File.join(OUTSOURCE_BASE, "genomics.med.tufts.edu")
-
-    def self.base
-      TUFTS_BASE
-    end
-  end
-end
-
-module Illuminati
-  class GtacOutsourcePaths < Paths
-    OUTSOURCE_BASE = File.join("/solexa", "Outsource")
-    GTAC_BASE = File.join(OUTSOURCE_BASE, "cgs.wustl.edu", "solexa")
-
-    def self.base
-      GTAC_BASE
-    end
-  end
-end
-
-module Illuminati
-  class SeqWrightOutsourcePaths < Paths
-    OUTSOURCE_BASE = File.join("/solexa", "Outsource")
-    SEQ_WRIGHT_BASE = File.join(OUTSOURCE_BASE, "seq_wright")
-
-    def self.base
-      SEQ_WRIGHT_BASE
-    end
-  end
-end
-
-def get_outsource_paths facility_name
-	if facility_name == "tufts"
-		Illuminati::TuftsOutsourcePaths
-	elsif facility_name == "gtac"
-		Illuminati::GtacOutsourcePaths
-  elsif facility_name == "wright"
-    Illuminati::SeqWrightOutsourcePaths
-	else
-		Illuminati::TuftsOutsourcePaths
-	end
-end
-
 def get_manual_paths manual_path
    paths = Illuminati::Paths
    paths.set_base manual_path
    paths
+end
+
+def get_outsource_paths outsource_name
+  full_outsource_base_path = File.join(Illuminati::OUTSOURCE_PATH_BASE, outsource_name)
+  get_manual_paths full_outsource_base_path
 end
 
 module Illuminati
@@ -93,6 +53,7 @@ module Illuminati
     attr_reader :flowcell
     attr_reader :options
     ALL_STEPS = %w{unaligned custom undetermined fastqc aligned stats report qcdata lims}
+    DEFAULT_STEPS = %w{unaligned undetermined fastqc aligned stats report qcdata lims}
 
     #
     # New PostRunner instance
@@ -761,7 +722,7 @@ if __FILE__ == $0
 
   flowcell_id = ARGV[0]
   options = {}
-  options[:steps] = Illuminati::PostRunner::ALL_STEPS
+  options[:steps] = Illuminati::PostRunner::DEFAULT_STEPS
   options[:paths] = Illuminati::Paths
 
   opts = OptionParser.new do |o|
