@@ -19,6 +19,8 @@ module Illuminati
   LOGS_PATH           = File.expand_path config['logs_path']
   # Root directory of location of flowcell run directories.
   FLOWCELL_PATH_BASE  = File.expand_path config['flowcell_path_base']
+  # Root directory of location of outsource flowcell run directories.
+  OUTSOURCE_PATH_BASE  = File.expand_path config['outsource_path_base']
 
 
   # Relative path of the Basecalls directory

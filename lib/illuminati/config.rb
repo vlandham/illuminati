@@ -22,6 +22,7 @@ module Illuminati
       config['admin_path']          ||= '/n/ngs/runs'
       config['logs_path']           ||= '/n/ngs/runs/log'
       config['flowcell_path_base']  ||= '/n/ngs/data'
+      config['outsource_path_base']  ||= '/n/ngs/data/outsource'
       config['basecalls_path']      ||= File.join('Data', 'Intensities', 'BaseCalls')
       config['fastq_combine_path']  ||= 'all'
       config['fastq_undetermined_combine_path'] ||= 'undetermined'
