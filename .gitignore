@@ -4,3 +4,4 @@ coverage/*
 .bundle/*
 .yardoc/*
 update/*
+scripts/api_config.pl
