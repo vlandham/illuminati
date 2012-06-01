@@ -3,6 +3,7 @@
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'optparse'
+require 'json'
 require 'illuminati'
 
 BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
@@ -238,14 +239,16 @@ module Illuminati
       fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
                                        @flowcell.paths.fastq_combine_dir,
                                        @flowcell.paths.fastq_filter_dir)
+
+      filter_task_name = nil
       unless @options[:only_distribute]
-        cat_files fastq_groups
-        filter_fastq_files(fastq_groups, @flowcell.paths.fastq_filter_dir)
+        cat_task_name = parallel_cat_files "unaligned", fastq_groups
+        filter_task_name = parallel_filter_fastq_files("unaligned", fastq_groups, @flowcell.paths.fastq_filter_dir, cat_task_name)
       end
 
       unless @options[:no_distribute]
         status "distributing unaligned fastq.gz files"
-        distribute_files fastq_groups, distributions
+        parallel_distribute_files("unaligned", fastq_groups, distributions, filter_task_name)
       end
     end
 
@@ -269,12 +272,13 @@ module Illuminati
       export_groups = group_export_files(aligned_project_dir,
                                          @flowcell.paths.eland_combine_dir,
                                          @flowcell.paths.eland_combine_dir)
+      cat_task_id = nil
       unless @options[:only_distribute]
-        cat_files export_groups
+        cat_task_id = parallel_cat_files("aligned", export_groups)
       end
 
       status "distributing export files"
-      distribute_files export_groups, distributions
+      parallel_distribute_files("aligned", export_groups, distributions, cat_task_id)
     end
 
     def get_aligned_project_dir
@@ -505,6 +509,22 @@ module Illuminati
       end
     end
 
+    def parallel_distribute_files prefix, file_groups, distributions, dependency = nil
+      database = []
+      distributions.each do |distribution|
+        log "# Creating directory #{distribution[:path]}"
+        execute "mkdir -p #{distribution[:path]}"
+        distribution_groups = file_groups.select {|g| g[:lane].to_i == distribution[:lane].to_i}
+        log "# Found #{distribution_groups.size} groups"
+        distribution_groups.each do |group|
+          entry = {:input => group[:filter_path], :output => distribution[:path]}
+          database << entry
+        end
+      end
+        task_id = submit_parallel(prefix, "cp_files", database, dependency)
+        task_id
+    end
+
     #
     # Given an array of distributions and an array of file paths
     # this method copies each file in the file paths to each distribution
@@ -622,6 +642,49 @@ module Illuminati
       end
     end
 
+    def parallel_cat_files prefix, file_groups, dependency = nil
+      database = []
+      file_groups.each do |group|
+        check_exists(group[:paths])
+        files_list = group[:paths].join(" ")
+        entry = {}
+        entry[:files] = files_list
+        entry[:destination] = group[:path]
+        database << entry
+      end
+      task_name = submit_parallel(prefix, "cat_files", database, dependency)
+      task_name
+    end
+
+    def submit_parallel prefix, task_name, database, dependency = nil
+      # get child cat script
+      child_process_script = File.join(ASSESTS_PATH, "#{task_name}.rb")
+
+      if !File.exists?(child_process_script)
+        log "# ERROR: no process script found: #{child_process_script}"
+        return nil
+      end
+      # save database to place that can be
+      # found by child processes
+      db_filename = File.expand_path(File.join(@flowcell.paths.qsub_db_path, "#{task_name}.json"))
+      command = "mkdir -p #{File.dirname(db_filename)}"
+      execute command
+
+      File.open(db_filename, 'w') do |file|
+        file.puts database.to_json
+      end
+
+      # run for all jobs in database
+      command = "qsub -cwd"
+      if dependency
+        command += " -hold_jid #{dependency}"
+      end
+      full_task_name = "#{prefix}_#{task_name}"
+      command += " -t 1-#{database.size}:1 -N #{full_task_name} #{child_process_script} #{db_filename}"
+      execute(command)
+      full_task_name
+    end
+
     #
     # Method to strip out reads in fastq.gz files that do not
     # pass filter. Filtered files are copied to the :filter_path
@@ -635,6 +698,19 @@ module Illuminati
         command = "zcat #{group[:path]} | #{FILTER_SCRIPT} | gzip -c > #{group[:filter_path]}"
         execute command
       end
+    end
+
+    def parallel_filter_fastq_files prefix, fastq_groups, output_path, dependency
+      log "# Creating path: #{output_path}"
+      execute "mkdir -p #{output_path}"
+
+      database = []
+      fastq_groups.each do |group|
+        entry = {:input => group[:path], :filter => FILTER_SCRIPT, :output => group[:filter_path]}
+        database << entry
+      end
+      task_name = submit_parallel(prefix, "filter_fastq", database, dependency)
+      task_name
     end
 
     #

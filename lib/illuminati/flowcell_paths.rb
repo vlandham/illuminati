@@ -231,6 +231,10 @@ module Illuminati
       File.join(base_dir, "Sample_Report.csv")
     end
 
+    def qsub_db_path
+      File.join(base_dir, "qsub_db")
+    end
+
     #
     # unused
     #
