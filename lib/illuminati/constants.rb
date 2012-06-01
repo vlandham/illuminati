@@ -19,6 +19,9 @@ module Illuminati
   # Root directory of location of outsource flowcell run directories.
   OUTSOURCE_PATH_BASE  = File.expand_path config['outsource_path_base']
 
+  ASSESTS_PATH = File.join(File.dirname(__FILE__), "..", "..", "assests")
+  NUM_PROCESSES = config['num_processes']
+
 
   # Relative path of the Basecalls directory
   BASECALLS_PATH      = config['basecalls_path']

@@ -39,6 +39,7 @@ module Illuminati
       config['email_server']        ||= 'localhost:25'
       config['web_dir_root']        ||= 'http://molbio/solexaRuns/'
       config['num_leading_dirs_to_strip'] ||= '1'
+      config['num_processes']       ||= 8
       config
     end
   end

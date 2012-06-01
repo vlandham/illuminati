@@ -28,6 +28,9 @@ module Illuminati
   LOGGER_SCRIPT = File.join(BASE_BIN_DIR, "logger.rb")
   EMAILER_SCRIPT = File.join(BASE_BIN_DIR, "emailer.rb")
 
+  BCL2FASTQ_SCRIPT = "bcl2fastq.sh"
+  BCL2FASTQ_SCRIPT_ORIGIN = File.join(ASSESTS_PATH, BCL2FASTQ_SCRIPT)
+
   #
   # Helper class to write out script commands to run script.
   #
@@ -113,8 +116,18 @@ module Illuminati
       script.write command
       script.write ""
 
+      # ensure casava bin path is in $PATH
+      command = "export PATH=#{CASAVA_PATH}:$PATH"
+      script.write command
+      script.write ""
+
+      command = "cp #{BCL2FASTQ_SCRIPT_ORIGIN} ./"
+      script.write command
+      script.write ""
+
       align_command = "#{ALIGN_SCRIPT} #{flowcell.flowcell_id} > run_align.out 2>&1"
-      command = "nohup make -j 4 POST_RUN_COMMAND=\"#{align_command}\" > make.unaligned.out 2>&1 &"
+      # command = "nohup make -j 4 POST_RUN_COMMAND=\\"#{align_command}\\" > make.unaligned.out 2>&1 &"
+      command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{BCL2FASTQ_SCRIPT} \"#{align_command}\""
       script.write command
       script.write ""
 

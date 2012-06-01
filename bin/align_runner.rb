@@ -7,6 +7,10 @@ POSTRUN_SCRIPT = File.join(BASE_BIN_DIR, "post_run")
 
 require 'illuminati'
 
+
+ALIGN_SCRIPT = "eland.sh"
+ALIGN_SCRIPT_ORIGIN = File.join(ASSESTS_PATH, ALIGN_SCRIPT)
+
 module Illuminati
   #
   # Class to manage the execution of the alignment
@@ -94,9 +98,13 @@ module Illuminati
           command += " --make"
           execute command
 
+          command = "cp #{ALIGN_SCRIPT_ORIGIN} #{flowcell.aligned_dir}"
+          execute command
+
           post_command = "#{POSTRUN_SCRIPT} #{flowcell.flowcell_id} > post_run.out 2>&1"
           command = "cd #{flowcell.aligned_dir};"
-          command += " nohup make -j 8 POST_RUN_COMMAND=\"#{post_command}\" all > make.aligned.out 2>&1  &"
+          command += " qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{ALIGN_SCRIPT} \"#{post_command}\""
+          # command += " nohup make -j 8 POST_RUN_COMMAND=\\"#{post_command}\\" all > make.aligned.out 2>&1  &"
           execute command
 
         else
