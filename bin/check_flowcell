@@ -1,0 +1,173 @@
+#! /usr/bin/env ruby
+
+$:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
+
+def colorize(text, color_code)
+  "\e[#{color_code}m#{text}\e[0m"
+end
+
+def red(text); colorize(text, 31); end
+def green(text); colorize(text, 32); end
+def cyan(text); colorize(text, 36); end
+
+require 'optparse'
+require 'illuminati'
+
+BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
+FILTER_SCRIPT = File.join(BASE_BIN_DIR, "fastq_filter.rb")
+
+def get_manual_paths manual_path
+   paths = Illuminati::Paths
+   paths.set_base manual_path
+   paths
+end
+
+def notify message
+  puts message
+end
+
+def test_exist_dir dir
+  if !File.exists?(dir) or !File.directory?(dir)
+    puts red("ERROR: no #{File.basename(dir)} directory found")
+    puts red(" should be at:")
+    puts red(" #{dir}")
+  else
+    puts green("OK: #{File.basename(dir)} found")
+  end
+end
+
+def test_exist file
+  if !File.exists?(file)
+    puts red("ERROR: no #{File.basename(file)} directory found")
+    puts red(" should be at:")
+    puts red(" #{file}")
+  else
+    puts green("OK: #{File.basename(file)} found")
+    puts " in #{File.dirname(file)}"
+  end
+end
+
+module Illuminati
+  class FlowcellChecker
+    def initialize path
+      @path = path
+      @base = File.dirname(@path)
+      @paths = Illuminati::Paths
+      @paths.set_base @base
+      @flowcell_id = ""
+    end
+
+    def check_paths
+      @fc_paths = FlowcellPaths.new(@flowcell_id, true, @paths)
+      base_dir = @fc_paths.base_dir
+      notify "root directory #{base_dir}"
+      test_exist_dir(@fc_paths.unaligned_dir)
+
+      unaligned_project_directories = @fc_paths.directories_in @fc_paths.unaligned_dir, PROJECT_PATTERN
+      if unaligned_project_directories.length == 0
+        puts red("ERROR: no project directory found in #{@fc_paths.unaligned_dir}")
+        puts red(" should be 'Project_*' directory in #{@fc_paths.unaligned_dir}")
+      end
+
+      if unaligned_project_directories.length > 1
+        puts cyan("WARNING: #{unaligned_project_directories.length} project directories found in #{@fc_paths.unaligned_dir}")
+        puts " illuminati can only handle 1"
+        puts " other project directories will be silently ignored"
+        puts " project directory that will be used:"
+        puts " #{unaligned_project_directories[0]}"
+      end
+      test_exist_dir(@fc_paths.unaligned_undetermined_dir)
+      test_exist_dir(@fc_paths.unaligned_stats_dir)
+      test_exist_dir(@fc_paths.aligned_dir)
+      aligned_prj_dirs = @fc_paths.aligned_project_dirs
+      notify "#{aligned_prj_dirs.length} Project Dirs found in Aligned Directory"
+      if aligned_prj_dirs.length > 1
+        aligned_prj_dirs.each do |apj|
+          notify "  #{apj}"
+        end
+        notify cyan(" WARNING: These Project directories will be combined")
+      end
+      aligned_prj_dirs.each do |apj|
+        test_exist_dir(apj)
+      end
+
+      aligned_stats_dirs = @fc_paths.aligned_stats_dirs
+      notify "#{aligned_stats_dirs.length} Stats Dirs found in Aligned Directory"
+      aligned_stats_dirs.each do |asd|
+        test_exist_dir(asd)
+      end
+
+    end
+
+    def check_stats_files
+      demultiplex_filename = File.join(@fc_paths.unaligned_stats_dir, "Demultiplex_Stats.htm")
+      test_exist(demultiplex_filename)
+      sample_summary_filenames = []
+      if @fc_paths.aligned_stats_dirs
+        sample_summary_filenames = @fc_paths.aligned_stats_dirs.collect {|dir| File.join(dir, "Sample_Summary.htm") }
+        notify "#{sample_summary_filenames.length} Sample_Summary.htm files found in Aligned Stats Dirs"
+        if sample_summary_filenames.length == 0
+          notify red("ERROR: no Sample_Summary.htm file found")
+          notfiy red(" needed for SampleReport.csv and LIMS notification")
+          notify red(" should be in #{@fc_paths.aligned_stats_dir}")
+        else
+          sample_summary_filenames.each do |ssf|
+            test_exist(ssf)
+          end
+        end
+      end
+    end
+
+    def check_lims
+      notify cyan("Contacting LIMS. Please wait.")
+      lims = ExternalDataLimsNew.new
+      data = lims.data_for(@flowcell_id)
+      if data["samples"] and data["samples"].length > 0
+        notify green("#{data["samples"].length} samples found for flowcell #{@flowcell_id}")
+      else
+        notify red("ERROR: no samples found for flowcell id '#{@flowcell_id}'")
+        notify red(" is this a valid flowcell?")
+        notify red(" is this flowcell in LIMS?")
+        notify red(" does the flowcell directory end with '_FLOWCELL-ID'")
+      end
+    end
+
+    def run
+      notify "examining #{@path}"
+      @flowcell_id = File.basename(@path).split("_")[-1]
+      notify cyan("guessed flowcell id: #{@flowcell_id}")
+      check_paths
+      check_stats_files
+      check_lims
+    end
+  end
+end
+
+if __FILE__ == $0
+
+  path = ARGV[0]
+  options = {}
+
+  opts = OptionParser.new do |o|
+    o.banner = "Usage: check_flowcell path/to/flowcell/dir"
+    # o.on('-p', '--path /file/path', String, 'Manually specify the flowcell file path') {|b| options[:paths] = get_manual_paths(b)}
+    # o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
+    o.on('-h', '--help', 'Displays help screen, then exits') {puts o; exit}
+  end
+
+  opts.parse!
+
+  # puts options.inspect
+
+  if path
+    if File.exists?(path) and File.directory?(path)
+      checker = Illuminati::FlowcellChecker.new path
+      checker.run
+    else
+      puts "ERROR: #{path} not found or is not a directory"
+    end
+  else
+    puts "ERROR: call with path to flowcell"
+    puts "       check_flowcell [/path/to/flowcell]"
+  end
+end
