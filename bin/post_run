@@ -187,14 +187,17 @@ module Illuminati
       if steps.include? "unaligned"
         # unaligned dir
         process_unaligned_reads distributions
+        Emailer.email "UNALIGNED step finished for #{@flowcell.paths.id}" unless @options[:test]
       end
 
       if steps.include? "custom"
         process_custom_barcode_reads distributions
+        Emailer.email "UNDETERMINED step finished for #{@flowcell.paths.id}" unless @options[:test]
       end
 
       if steps.include? "undetermined"
         process_undetermined_reads distributions
+        Emailer.email "UNDETERMINED step finished for #{@flowcell.paths.id}" unless @options[:test]
       end
 
       if steps.include? "fastqc"
@@ -202,10 +205,12 @@ module Illuminati
           run_fastqc @flowcell.paths.fastq_filter_dir
         end
         distribute_to_unique distributions, @flowcell.paths.fastqc_dir
+        Emailer.email "FASTQC step finished for #{@flowcell.paths.id}" unless @options[:test]
       end
 
       if steps.include? "aligned"
         run_aligned distributions
+        Emailer.email "ALIGNED step finished for #{@flowcell.paths.id}" unless @options[:test]
       end
 
       if steps.include? "stats"
