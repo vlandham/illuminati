@@ -147,7 +147,6 @@ if __FILE__ == $0
 
   path = ARGV[0]
   options = {}
-
   opts = OptionParser.new do |o|
     o.banner = "Usage: check_flowcell path/to/flowcell/dir"
     # o.on('-p', '--path /file/path', String, 'Manually specify the flowcell file path') {|b| options[:paths] = get_manual_paths(b)}
