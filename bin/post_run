@@ -3,10 +3,13 @@
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 require 'optparse'
+require 'parallel'
 require 'illuminati'
 
 BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
 FILTER_SCRIPT = File.join(BASE_BIN_DIR, "fastq_filter.rb")
+
+DISTRIBUTE_PROCESSES = 4
 
 TEST = false
 
@@ -500,7 +503,7 @@ module Illuminati
 
         distribution_groups = file_groups.select {|g| g[:lane].to_i == distribution[:lane].to_i}
         log "# Found #{distribution_groups.size} groups"
-        distribution_groups.each do |group|
+        Parallel.each(distribution_groups, :in_processes => DISTRIBUTE_PROCESSES) do |group|
           present = check_exists(group[:filter_path])
           if present
             command = "cp #{group[:filter_path]} #{distribution[:path]}"
