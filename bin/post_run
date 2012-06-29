@@ -672,6 +672,12 @@ module Illuminati
         log "# ERROR: no process script found: #{child_process_script}"
         return nil
       end
+
+      wrapper_script = File.join(ASSESTS_PATH, "wrapper.sh")
+      if !File.exists?(wrapper_script)
+        log "# ERROR: no wrapper script found: #{wrapper_script}"
+        return nil
+      end
       # save database to place that can be
       # found by child processes
       db_filename = File.expand_path(File.join(@flowcell.paths.qsub_db_path, "#{task_name}.json"))
@@ -683,12 +689,12 @@ module Illuminati
       end
 
       # run for all jobs in database
-      command = "qsub -cwd"
+      command = "qsub -cwd -V"
       if dependency
         command += " -hold_jid #{dependency}"
       end
       full_task_name = "#{prefix}_#{task_name}"
-      command += " -t 1-#{database.size}:1 -N #{full_task_name} #{child_process_script} #{db_filename}"
+      command += " -t 1-#{database.size}:1 -N #{full_task_name} #{wrapper_script} #{child_process_script} #{db_filename}"
       execute(command)
       full_task_name
     end
