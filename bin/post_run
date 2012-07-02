@@ -665,6 +665,8 @@ module Illuminati
     end
 
     def submit_parallel prefix, task_name, database, dependency = nil
+
+      cwd = Dir.pwd
       # get child cat script
       child_process_script = File.join(ASSESTS_PATH, "#{task_name}.rb")
 
@@ -688,14 +690,17 @@ module Illuminati
         file.puts database.to_json
       end
 
-      # run for all jobs in database
-      command = "qsub -cwd -V"
-      if dependency
-        command += " -hold_jid #{dependency}"
-      end
       full_task_name = "#{prefix}_#{task_name}"
-      command += " -t 1-#{database.size}:1 -N #{full_task_name} #{wrapper_script} #{child_process_script} #{db_filename}"
-      execute(command)
+
+      Dir.chdir(@flowcell.paths.qsub_db_path) do
+        # run for all jobs in database
+        command = "qsub -cwd -V"
+        if dependency
+          command += " -hold_jid #{dependency}"
+        end
+        command += " -t 1-#{database.size}:1 -N #{full_task_name} #{wrapper_script} #{child_process_script} #{db_filename}"
+        execute(command)
+      end
       full_task_name
     end
 

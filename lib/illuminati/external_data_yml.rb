@@ -14,7 +14,6 @@ module Illuminati
     attr_accessor :filename
 
     def initialize filename
-      super
       self.filename = filename
     end
 

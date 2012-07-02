@@ -8,7 +8,7 @@ database = JSON.parse(File.open(database_filename, 'r').read)
 
 entry = database[database_index]
 
-command = "zcat #{entry[:input]} | #{entry[:filter]} | gzip -c > #{entry[:output]}"
+command = "zcat #{entry["input"]} | #{entry["filter"]} | gzip -c > #{entry["output"]}"
 puts command
 `#{command}`
 

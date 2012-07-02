@@ -8,7 +8,7 @@ database = JSON.parse(File.open(database_filename, 'r').read)
 
 entry = database[database_index]
 
-command = "cat #{entry[:files]} > #{entry[:destination]}"
+command = "cat #{entry["files"].chomp} > #{entry["destination"]}"
 puts command
 `#{command}`
 

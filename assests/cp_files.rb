@@ -8,7 +8,7 @@ database = JSON.parse(File.open(database_filename, 'r').read)
 
 entry = database[database_index]
 
-command = "cp #{entry[:input]} #{entry[:output]}"
+command = "cp #{entry["input"]} #{entry["output"]}"
 puts command
 `#{command}`
 
