@@ -67,6 +67,8 @@ module Illuminati
         sample_data[:raw_barcode] = lims_sample_data["index"] || ""
         sample_data[:raw_barcode_type] = sample_data[:barcode_type]
 
+        sample_data[:path] = lims_sample_data["resultsPath"]
+
 
         # prevent invalid barcodes
         if !is_valid_barcode? sample_data[:barcode]
@@ -95,6 +97,7 @@ module Illuminati
       sample_data[:protocol] = protocol
       sample_data[:barcode_type] = :none
       sample_data[:barcode] = ""
+      sample_data[:path] = nil
       sample_data
     end
 
