@@ -121,13 +121,17 @@ module Illuminati
       script.write command
       script.write ""
 
-      command = "cp #{BCL2FASTQ_SCRIPT_ORIGIN} ./"
+      command = "cp #{File.expand_path(BCL2FASTQ_SCRIPT_ORIGIN)} ./"
       script.write command
       script.write ""
 
+      local_bcl2fastq_script_path = File.join(flowcell.unaligned_dir, BCL2FASTQ_SCRIPT)
+
       align_command = "#{ALIGN_SCRIPT} #{flowcell.flowcell_id} > run_align.out 2>&1"
       # command = "nohup make -j 4 POST_RUN_COMMAND=\\"#{align_command}\\" > make.unaligned.out 2>&1 &"
-      command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{BCL2FASTQ_SCRIPT} \"#{align_command}\""
+      # command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_bcl2fastq_script_path} \\"#{align_command}\\""
+      command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_bcl2fastq_script_path}"
+      # command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path} \\"#{align_command}\\""
       script.write command
       script.write ""
 
