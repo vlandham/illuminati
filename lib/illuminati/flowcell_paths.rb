@@ -47,7 +47,7 @@ module Illuminati
       if paths.size < 1
         puts "ERROR: no flowcell directory found for #{@flowcell_id}"
         puts "ERROR: search path: #{path}"
-        raise "no flowcell path" unless @test
+        raise "no flowcell path #{path}" unless @test
       elsif paths.size > 1
         puts "ERROR: multiple flowcell directories found for #{@flowcell_id}"
         puts "ERROR: number of paths found: #{paths.size}"

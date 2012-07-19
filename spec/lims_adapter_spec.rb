@@ -7,12 +7,12 @@ describe Illuminati::ExternalDataLims do
     @lims = Illuminati::ExternalDataLims.new
   end
 
-  it "should translate organisms" do
-    orgs = [["Dro So BDGP5", "Drosophila_melanogaster.BDGP5.4.54"], ["Human", "hg19"]]
-    orgs.each do |input_name, translation|
-      @lims.translate_organism(input_name).should == translation
-    end
-  end
+  # it "should translate organisms" do
+  #   orgs = [["Dro So BDGP5", "Drosophila_melanogaster.BDGP5.4.54"], ["Human", "hg19"]]
+  #   orgs.each do |input_name, translation|
+  #     @lims.translate_organism(input_name).should == translation
+  #   end
+  # end
 
   it "should produce array of hashes with lane info" do
     good_lanes = [{:flowcell=>"639KBAAXX", :lane=>"1", :genome=>"mm9", :name=>"9.5dpc_HoxB1_input", :cycles=>"40", :protocol=>"eland_extended", :bases => "Y*", :barcode_type => :none, :barcode => ""},
