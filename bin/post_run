@@ -55,7 +55,7 @@ module Illuminati
   class PostRunner
     attr_reader :flowcell
     attr_reader :options
-    ALL_STEPS = %w{unaligned custom undetermined fastqc aligned stats report qcdata lims}
+    ALL_STEPS = %w{unaligned filter custom undetermined fastqc aligned stats report qcdata lims}
     DEFAULT_STEPS = %w{unaligned undetermined fastqc aligned stats report qcdata lims}
 
     #
@@ -205,7 +205,7 @@ module Illuminati
 
       if steps.include? "fastqc"
         unless @options[:only_distribute]
-          run_fastqc @flowcell.paths.fastq_filter_dir
+          run_fastqc @flowcell.paths.fastq_combine_dir
         end
         distribute_to_unique distributions, @flowcell.paths.fastqc_dir
         Emailer.email "FASTQC step finished for #{@flowcell.paths.id}" unless @options[:test]
@@ -243,12 +243,14 @@ module Illuminati
     #
     def process_unaligned_reads distributions
       status "processing unaligned"
+      steps = @options[:steps]
       fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
-                                       @flowcell.paths.fastq_combine_dir,
-                                       @flowcell.paths.fastq_filter_dir)
-      unless @options[:only_distribute]
-        cat_files fastq_groups
-        filter_fastq_files(fastq_groups, @flowcell.paths.fastq_filter_dir)
+                                       @flowcell.paths.fastq_combine_dir)
+      if steps.include? "filter"
+        unless @options[:only_distribute]
+          cat_files fastq_groups
+          fastq_groups = filter_fastq_files(fastq_groups, @flowcell.paths.fastq_filter_dir)
+        end
       end
 
       unless @options[:no_distribute]
@@ -261,8 +263,7 @@ module Illuminati
     def process_custom_barcode_reads distributions
       status "processing custom barcode reads"
       fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
-                                       @flowcell.paths.fastq_combine_dir,
-                                       @flowcell.paths.fastq_filter_dir)
+                                       @flowcell.paths.fastq_combine_dir)
       custom_barcode_files = split_custom_barcodes fastq_groups
       distribute_files(custom_barcode_files, distributions) unless custom_barcode_files.empty?
     end
@@ -275,7 +276,6 @@ module Illuminati
       status "processing export files"
       aligned_project_dir = get_aligned_project_dir
       export_groups = group_export_files(aligned_project_dir,
-                                         @flowcell.paths.eland_combine_dir,
                                          @flowcell.paths.eland_combine_dir)
       unless @options[:only_distribute]
         cat_files export_groups
@@ -368,7 +368,7 @@ module Illuminati
       groups.each do |sample_data|
         barcode_file_path = @flowcell.paths.custom_barcode_path(sample_data[:lane])
         if File.exists?(barcode_file_path)
-          orginal_fastq_path = sample_data[:filter_path]
+          orginal_fastq_path = sample_data[:path]
           fastq_base_dir = File.dirname(orginal_fastq_path)
           file_prefix = File.join(fastq_base_dir, "s_#{sample_data[:lane]}_#{sample_data[:read]}_")
           file_suffix = ".fastq"
@@ -396,7 +396,7 @@ module Illuminati
           compressed_fastq_files.each do |barcode_file_path|
             barcode_file_name = File.basename(barcode_file_path)
             custom_barcode_hash = {:lane => sample_data[:lane], :read => sample_data[:read],
-                                   :filter_path => barcode_file_path, :group_name => barcode_file_name}
+                                   :path => barcode_file_path, :group_name => barcode_file_name}
             custom_barcode_data << custom_barcode_hash
           end
         end
@@ -504,9 +504,9 @@ module Illuminati
         distribution_groups = file_groups.select {|g| g[:lane].to_i == distribution[:lane].to_i}
         log "# Found #{distribution_groups.size} groups"
         Parallel.each(distribution_groups, :in_processes => DISTRIBUTE_PROCESSES) do |group|
-          present = check_exists(group[:filter_path])
+          present = check_exists(group[:path])
           if present
-            command = "cp #{group[:filter_path]} #{distribution[:path]}"
+            command = "cp #{group[:path]} #{distribution[:path]}"
             execute command
           end
         end
@@ -553,7 +553,7 @@ module Illuminati
       output_path = @flowcell.paths.unaligned_undetermined_combine_dir
       options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => false}
 
-      fastq_file_groups = group_fastq_files starting_path, output_path, output_path, options
+      fastq_file_groups = group_fastq_files starting_path, output_path, options
 
       unless @options[:only_distribute]
         cat_files fastq_file_groups
@@ -568,7 +568,7 @@ module Illuminati
     #
     # Gets grouping data for fastq.gz files
     #
-    def group_fastq_files starting_path, output_path, filter_path, options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => true}
+    def group_fastq_files starting_path, output_path, options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => true}
       execute "mkdir -p #{output_path}"
       fastq_groups = []
 
@@ -578,7 +578,7 @@ module Illuminati
       else
         log "# #{fastq_files.size} fastq files found in #{starting_path}"
         fastq_file_data = get_file_data fastq_files, "\.fastq\.gz"
-        fastq_groups = group_files fastq_file_data, output_path, filter_path, options
+        fastq_groups = group_files fastq_file_data, output_path, options
       end
       fastq_groups
     end
@@ -586,7 +586,7 @@ module Illuminati
     #
     # Gets grouping data for export files
     #
-    def group_export_files starting_path, output_path, filter_path
+    def group_export_files starting_path, output_path
       execute "mkdir -p #{output_path}"
 
       export_files = Dir.glob(File.join(starting_path, "**", "*_export.txt.gz"))
@@ -595,7 +595,7 @@ module Illuminati
 
       export_file_data = get_file_data export_files, "_export\.txt\.gz"
       options = {:prefix => "s_", :suffix => "_export.txt.gz", :exclude_undetermined => true}
-      export_groups = group_files export_file_data, output_path, filter_path, options
+      export_groups = group_files export_file_data, output_path, options
       export_groups
     end
 
@@ -640,9 +640,12 @@ module Illuminati
       execute "mkdir -p #{output_path}"
 
       fastq_groups.each do |group|
-        command = "zcat #{group[:path]} | #{FILTER_SCRIPT} | gzip -c > #{group[:filter_path]}"
+        group_filter_path = File.join(output_path, group[:group_name])
+        command = "zcat #{group[:path]} | #{FILTER_SCRIPT} | gzip -c > #{group_filter_path}"
         execute command
+        group[:path] = group_filter_path
       end
+      fastq_groups
     end
 
     #
@@ -652,7 +655,7 @@ module Illuminati
     # combined fastq file and an Array of
     # paths that the group contains
     #
-    def group_files file_data, output_path, filter_path, options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => true}
+    def group_files file_data, output_path, options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => true}
       groups = {}
       file_data.each do |data|
         if data[:barcode] == "Undetermined" and options[:exclude_undetermined]
@@ -672,10 +675,8 @@ module Illuminati
           groups[group_key][:files] << data
         else
           group_path = File.join(output_path, group_key)
-          group_filter_path = File.join(filter_path, group_key)
           groups[group_key] = {:group_name => group_key,
                                :path => group_path,
-                               :filter_path => group_filter_path,
                                :sample_name => data[:sample_name],
                                :read => data[:read],
                                :lane => data[:lane],
