@@ -137,7 +137,7 @@ module Illuminati
     # running fastqc script on filtered fastq.gz files.
     #
     def fastqc_dir
-      File.join(fastq_filter_dir, "fastqc")
+      File.join(fastq_combine_dir, "fastqc")
     end
 
     #
