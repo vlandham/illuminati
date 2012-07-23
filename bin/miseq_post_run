@@ -20,23 +20,6 @@ def get_miseq_path
   get_manual_paths full_outsource_base_path
 end
 
-module Illuminati
-  class MiseqFlowcellPaths < FlowcellPaths
-    def initialize flowcell_id, testing = false, paths = Paths
-      super(flowcell_id, testing, paths)
-    end
-
-    def unaligned_dir
-      File.join(base_dir, BASECALLS_PATH)
-    end
-
-    def unaligned_project_dir
-      File.join(base_dir, BASECALLS_PATH)
-    end
-  end
-end
-
-
 if __FILE__ == $0
 
   flowcell_id = ARGV[0]
@@ -50,7 +33,6 @@ if __FILE__ == $0
     o.on('-d', '--only_distribute', 'only distribute. no processing') {|b| options[:only_distribute] = true}
     o.on('-n', '--no_distribute', 'No distribute. only processing') {|b| options[:no_distribute] = true}
 
-    o.on('-o', '--outsource OUT_FACILITY', String, 'Specify outsource facility') {|b| puts b; options[:paths] = get_outsource_paths(b)}
     o.on('-p', '--path /file/path', String, 'Manually specify the flowcell file path') {|b| options[:paths] = get_manual_paths(b)}
     o.on('-s', "--steps #{Illuminati::PostRunner::ALL_STEPS.join(",")}" , Array, 'Specify only which steps of the pipeline should be executed') {|b| options[:steps] = b.collect {|step| step} }
     o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }

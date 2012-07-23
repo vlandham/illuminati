@@ -1,5 +1,6 @@
 
 require 'illuminati/flowcell_paths'
+require 'illuminati/miseq_flowcell_paths'
 require 'illuminati/flowcell_record'
 require 'illuminati/custom_barcode_file_maker'
 require 'illuminati/emailer'
