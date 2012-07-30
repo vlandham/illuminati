@@ -28,7 +28,7 @@ module Illuminati
   LOGGER_SCRIPT = File.join(BASE_BIN_DIR, "logger.rb")
   EMAILER_SCRIPT = File.join(BASE_BIN_DIR, "emailer.rb")
 
-  BCL2FASTQ_SCRIPT = "bcl2fastq.sh"
+  BCL2FASTQ_SCRIPT = "bcl2fastq_plain.sh"
   BCL2FASTQ_SCRIPT_ORIGIN = File.join(ASSESTS_PATH, BCL2FASTQ_SCRIPT)
 
   #
@@ -130,8 +130,9 @@ module Illuminati
       align_command = "#{ALIGN_SCRIPT} #{flowcell.flowcell_id} > run_align.out 2>&1"
       # command = "nohup make -j 4 POST_RUN_COMMAND=\\"#{align_command}\\" > make.unaligned.out 2>&1 &"
       # command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_bcl2fastq_script_path} \\"#{align_command}\\""
-      command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_bcl2fastq_script_path}"
+      # command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_bcl2fastq_script_path}"
       # command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path} \\"#{align_command}\\""
+      command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path}"
       script.write command
       script.write ""
 

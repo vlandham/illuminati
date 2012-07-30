@@ -8,8 +8,8 @@ POSTRUN_SCRIPT = File.join(BASE_BIN_DIR, "post_run")
 require 'illuminati'
 
 
-ALIGN_SCRIPT = "eland.sh"
-ALIGN_SCRIPT_ORIGIN = File.join(ASSESTS_PATH, ALIGN_SCRIPT)
+ALIGN_SCRIPT = "eland_plain.sh"
+ALIGN_SCRIPT_ORIGIN = File.join(Illuminati::ASSESTS_PATH, ALIGN_SCRIPT)
 
 module Illuminati
   #
@@ -98,13 +98,21 @@ module Illuminati
           command += " --make"
           execute command
 
-          command = "cp #{ALIGN_SCRIPT_ORIGIN} #{flowcell.aligned_dir}"
+
+          command = "export PATH=#{CASAVA_PATH}:$PATH"
+          execute command
+          execute("echo $PATH")
+
+          local_align_script_path = File.join(flowcell.unaligned_dir, ALIGN_SCRIPT)
+          command = "cp #{ALIGN_SCRIPT_ORIGIN} #{local_align_script_path}"
           execute command
 
           post_command = "#{POSTRUN_SCRIPT} #{flowcell.flowcell_id} > post_run.out 2>&1"
           command = "cd #{flowcell.aligned_dir};"
-          command += " qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{ALIGN_SCRIPT} \"#{post_command}\""
+          # command += " qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_align_script_path} \\"#{post_command}\\""
+          command += " qsub -cwd -v PATH -pe make #{NUM_PROCESSES/2} #{local_align_script_path}"
           # command += " nohup make -j 8 POST_RUN_COMMAND=\\"#{post_command}\\" all > make.aligned.out 2>&1  &"
+          command += " qsub -cwd -v PATH #{local_align_script_path}"
           execute command
 
         else
