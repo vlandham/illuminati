@@ -1,7 +1,7 @@
 #!/bin/sh
+#$ -S /bin/bash
 
-# POST_RUN=$1
+SCRIPT="${1}"
+shift
 
-# qmake -cwd -v PATH  -inherit -- all POST_RUN_COMMAND="$POST_RUN"
-# qmake -cwd -v PATH  -inherit -- all
-qmake -cwd -v PATH -- -j 24
+qmake -cwd -v PATH -- -j 24 POST_RUN_COMMAND="${SCRIPT}"

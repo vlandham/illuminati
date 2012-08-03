@@ -1,9 +1,7 @@
 #!/bin/sh
+#$ -S /bin/bash
 
-# ALIGNMENT_COMMAND=$1
+SCRIPT="${1}"
+shift
 
-# qmake -cwd -v PATH -inherit -- all POST_RUN_COMMAND="$ALIGNMENT_COMMAND"
-# qmake -cwd -v PATH -inherit -- all
-# qmake -cwd -v PATH -N bcl2fastq -- -j 32 POST_RUN_COMMAND="$ALIGNMENT_COMMAND"
-# qmake -cwd -inherit -- all
-qmake -cwd -v PATH -- -j 24
+qmake -cwd -v PATH -- -j 24 POST_RUN_COMMAND="${SCRIPT}"

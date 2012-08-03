@@ -132,7 +132,7 @@ module Illuminati
       # command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_bcl2fastq_script_path} \\"#{align_command}\\""
       # command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_bcl2fastq_script_path}"
       # command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path} \\"#{align_command}\\""
-      command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path}"
+      command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path} \"#{align_command}\""
       script.write command
       script.write ""
 
