@@ -9,7 +9,7 @@ require 'yaml'
 flowcell_id = ARGV[0]
 
 
-external_data = Illuminati::ExternalDataLimsNew.new
+external_data = Illuminati::ExternalDataLims.new
 
 samples = external_data.sample_data_for(flowcell_id)
 distributions = external_data.distributions_for(flowcell_id)

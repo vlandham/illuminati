@@ -1,0 +1,20 @@
+[Header]
+IEMFileVersion,4
+Investigator Name,JBZ-QHE
+Project Name,MOLNG-173
+Experiment Name,MOLNG-173
+Date,7/11/2012
+Workflow,GenerateFASTQ
+Application,ChIP-Seq
+Assay,TruSeq DNA/RNA
+Description,
+Chemistry,Default
+
+[Reads]
+50
+
+[Settings]
+
+[Data]
+Sample_ID,Sample_Name,Sample_Plate,Sample_Well,Sample_Project,index,I7_Index_ID,Description
+P294,L1401,MOLNG-173,A01,MOLNG-173,ATCACG,A001,

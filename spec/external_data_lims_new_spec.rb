@@ -1,9 +1,9 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
-require 'illuminati/external_data_lims_new'
+require 'illuminati/external_data_lims'
 
-describe Illuminati::ExternalDataLimsNew do
+describe Illuminati::ExternalDataLims do
   before(:each) do
-    @lims = Illuminati::ExternalDataLimsNew.new
+    @lims = Illuminati::ExternalDataLims.new
   end
 
   # TODO: This spec is using data from the test installation of the

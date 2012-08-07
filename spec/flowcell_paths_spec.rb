@@ -4,7 +4,7 @@ require 'illuminati/flowcell_paths'
 
 describe Illuminati::FlowcellPaths do
   before(:each) do
-    @data = Illuminati::FlowcellPaths.new("6323AAAXX", true)
+    @data = Illuminati::FlowcellPaths.new("D101TACXX", true)
   end
 
   it "should have a base dir" do

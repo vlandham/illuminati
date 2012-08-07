@@ -1,7 +1,5 @@
 require 'illuminati/external_data_lims'
 require 'illuminati/external_data_yml'
-require 'illuminati/external_data_lims_new'
-require 'illuminati/external_data_lims_test'
 
 module Illuminati
   class ExternalDataAdapter
@@ -12,7 +10,7 @@ module Illuminati
         puts "WARNING: Using yml external data at #{yml_file}"
         return ExternalDataYml.new(yml_file)
       else
-        return ExternalDataLimsNew.new(base_dir)
+        return ExternalDataLims.new(base_dir)
       end
     end
 

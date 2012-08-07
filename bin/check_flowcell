@@ -120,7 +120,7 @@ module Illuminati
 
     def check_lims
       notify cyan("Contacting LIMS. Please wait.")
-      lims = ExternalDataLimsNew.new
+      lims = ExternalDataLims.new
       data = lims.data_for(@flowcell_id)
       if data["samples"] and data["samples"].length > 0
         notify green("#{data["samples"].length} samples found for flowcell #{@flowcell_id}")
