@@ -190,12 +190,12 @@ module Illuminati
 
       if steps.include? "unaligned"
         # unaligned dir
-        process_unaligned_reads distributions
+        unaligned_task_wait = process_unaligned_reads distributions
         Emailer.email "UNALIGNED step finished for #{@flowcell.paths.id}" unless @options[:test]
       end
 
       if steps.include? "custom"
-        process_custom_barcode_reads distributions
+        process_custom_barcode_reads distributions, unaligned_task_wait
         Emailer.email "UNDETERMINED step finished for #{@flowcell.paths.id}" unless @options[:test]
       end
 
@@ -244,6 +244,7 @@ module Illuminati
     #
     def process_unaligned_reads distributions
       status "processing unaligned"
+      waiton_task_name = nil
       fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
                                        @flowcell.paths.fastq_combine_dir,
                                        @flowcell.paths.fastq_filter_dir)
@@ -252,22 +253,25 @@ module Illuminati
       unless @options[:only_distribute]
         cat_task_name = parallel_cat_files "unaligned", fastq_groups
         filter_task_name = parallel_filter_fastq_files("unaligned", fastq_groups, @flowcell.paths.fastq_filter_dir, cat_task_name)
+        waiton_task_name = filter_task_name
       end
 
       unless @options[:no_distribute]
         status "distributing unaligned fastq.gz files"
-        parallel_distribute_files("unaligned", fastq_groups, distributions, filter_task_name)
+        distribute_task_name = parallel_distribute_files("unaligned", fastq_groups, distributions, filter_task_name)
+        waiton_task_name = distribute_task_name
       end
+      waiton_task_name
     end
 
 
-    def process_custom_barcode_reads distributions
+    def process_custom_barcode_reads distributions, wait_on_task
       status "processing custom barcode reads"
       fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
                                        @flowcell.paths.fastq_combine_dir,
                                        @flowcell.paths.fastq_filter_dir)
-      custom_barcode_files = split_custom_barcodes fastq_groups
-      distribute_files(custom_barcode_files, distributions) unless custom_barcode_files.empty?
+      # custom_barcode_files = split_custom_barcodes fastq_groups
+      # distribute_files(custom_barcode_files, distributions) unless custom_barcode_files.empty?
     end
 
     #
