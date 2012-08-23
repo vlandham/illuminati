@@ -25,7 +25,9 @@ module Illuminati
         else
           command = "echo \"that is all\" | #{command}"
         end
-        system(command)
+        puts command
+        results = %x[#{command}]
+        puts results
       end
     end
   end
