@@ -1,0 +1,59 @@
+#! /usr/bin/env ruby
+
+$:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
+
+require 'optparse'
+require 'json'
+require 'parallel'
+require 'illuminati'
+
+
+TEST = false
+
+def get_manual_paths manual_path
+   paths = Illuminati::Paths
+   paths.set_base manual_path
+   paths
+end
+
+def get_outsource_paths outsource_name
+  full_outsource_base_path = File.join(Illuminati::OUTSOURCE_PATH_BASE, outsource_name)
+  get_manual_paths full_outsource_base_path
+end
+
+if __FILE__ == $0
+
+  flowcell_id = ARGV[0]
+  options = {}
+  options[:steps] = Illuminati::PostRunner::DEFAULT_STEPS
+  options[:paths] = Illuminati::Paths
+
+  opts = OptionParser.new do |o|
+    o.banner = "Usage: post_runner.rb [Flowcell Id] [options]"
+    o.on('-t', '--test', 'do not write out to disk') {|b| options[:test] = b}
+    o.on('-d', '--only_distribute', 'only distribute. no processing') {|b| options[:only_distribute] = true}
+    o.on('-n', '--no_distribute', 'No distribute. only processing') {|b| options[:no_distribute] = true}
+
+    o.on('-o', '--outsource OUT_FACILITY', String, 'Specify outsource facility') {|b| puts b; options[:paths] = get_outsource_paths(b)}
+    o.on('-p', '--path /file/path', String, 'Manually specify the flowcell file path') {|b| options[:paths] = get_manual_paths(b)}
+    o.on('-s', "--steps #{Illuminati::PostRunner::ALL_STEPS.join(",")}" , Array, 'Specify only which steps of the pipeline should be executed') {|b| options[:steps] = b.collect {|step| step} }
+    o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
+    o.on('-h', '--help', 'Displays help screen, then exits') {puts o; exit}
+  end
+
+  opts.parse!
+
+  puts options.inspect
+
+  if flowcell_id
+    paths = Illuminati::FlowcellPaths.new flowcell_id, TEST, options[:paths]
+    flowcell = Illuminati::FlowcellRecord.find flowcell_id, paths
+    runner = Illuminati::PostRunner.new flowcell, options
+
+    runner.submit_one("post_run", "email", nil, "POSTRUN", flowcell.paths.id)
+
+  else
+    puts "ERROR: call with flowcell id"
+    puts "       post_run [FLOWCELL_ID]"
+  end
+end
