@@ -145,11 +145,11 @@ module Illuminati
     # Teardown process of post run.
     # Should not be called externally.
     #
-    def stop_flowcell
+    def stop_flowcell wait_on_task
       @post_run_script.close if @post_run_script
       qc_postrun_filename = File.join(@flowcell.paths.qc_dir, File.basename(@post_run_script_filename))
       execute "cp #{@post_run_script_filename} #{qc_postrun_filename}"
-      Emailer.email "post run complete for #{@flowcell.paths.id}" unless @options[:test]
+      submit_one("post_run", "email", wait_on_task, "POSTRUN", @flowcell.paths.id)
       status "postrun done"
     end
 
@@ -173,37 +173,41 @@ module Illuminati
 
       steps = @options[:steps]
       status "running steps: #{steps.join(", ")}"
-      waiton_task = nil
+      wait_on_task = nil
+      unaligned_task = nil
 
       if steps.include? "unaligned"
         # unaligned dir
-        unaligned_task_wait = process_unaligned_reads distributions
-        waiton_task = unaligned_task_wait
-        submit_one("unaligned", "email", waiton_task, "UNALIGNED", @flowcell.paths.id)
+        unaligned_task = process_unaligned_reads distributions
+        wait_on_task = unaligned_task
+        submit_one("unaligned", "email", wait_on_task, "UNALIGNED", @flowcell.paths.id)
         # Emailer.email "UNALIGNED step finished for #{@flowcell.paths.id}" unless @options[:test]
       end
 
       if steps.include? "custom"
-        custom_task = process_custom_barcode_reads distributions, waiton_task
+        unaligned_task = process_custom_barcode_reads distributions, unaligned_task
         submit_one("custom", "email", custom_task, "CUSTOM", @flowcell.paths.id)
       end
 
       if steps.include? "undetermined"
-        undetermined_task_wait = process_undetermined_reads distributions, waiton_task
-        waiton_task = undetermined_task_wait
-        submit_one("undetermined", "email", waiton_task, "UNDETERMINED", @flowcell.paths.id)
+        unaligned_task = process_undetermined_reads distributions, unaligned_task
+        wait_on_task = unaligned_task
+        submit_one("undetermined", "email", wait_on_task, "UNDETERMINED", @flowcell.paths.id)
       end
 
       if steps.include? "fastqc"
+        system("mkdir -p #{@flowcell.paths.fastqc_dir}")
+        fastqc_task = nil
         unless @options[:only_distribute]
-          fastqc_task = parallel_run_fastqc @flowcell.paths.fastq_combine_dir, waiton_task
+          fastqc_task = parallel_run_fastqc @flowcell.paths.fastq_combine_dir, unaligned_task
         end
-        parallel_distribute_to_unique distributions, @flowcell.paths.fastqc_dir, fastqc_task
+        wait_on_task = parallel_distribute_to_unique "fastqc", distributions, @flowcell.paths.fastqc_dir, fastqc_task
         submit_one("fastqc", "email", fastqc_task, "FASTQC", @flowcell.paths.id)
       end
 
       if steps.include? "aligned"
-        aligned_task = run_aligned distributions
+        aligned_task = run_aligned distributions, wait_on_task
+        wait_on_task = aligned_task
         submit_one("aligned", "email", aligned_task, "ALIGNED", @flowcell.paths.id)
       end
 
@@ -225,7 +229,7 @@ module Illuminati
         notify_lims
       end
 
-      stop_flowcell
+      stop_flowcell(wait_on_task)
     end
 
     #
@@ -235,31 +239,54 @@ module Illuminati
     def process_unaligned_reads distributions
       status "processing unaligned"
       steps = @options[:steps]
-      waiton_task_name = nil
+      wait_on_task = nil
       fastq_groups = group_fastq_files(@flowcell.paths.unaligned_project_dir,
                                        @flowcell.paths.fastq_combine_dir)
 
       unless @options[:only_distribute]
         cat_task_name = parallel_cat_files "unaligned", fastq_groups
-        waiton_task_name = cat_task_name
+        wait_on_task = cat_task_name
       end
 
       if steps.include? "filter"
         status "filtering unaligned fastq.gz files"
         unless @options[:only_distribute]
-          filter_task_name = parallel_filter_fastq_files("unaligned", fastq_groups, @flowcell.paths.fastq_filter_dir, waiton_task_name)
-          waiton_task_name = filter_task_name
+          filter_task_name = parallel_filter_fastq_files("unaligned", fastq_groups, @flowcell.paths.fastq_filter_dir, wait_on_task)
+          wait_on_task = filter_task_name
         end
-        waiton_task_name
+        wait_on_task
       end
 
 
       unless @options[:no_distribute] or distributions.empty?
         status "distributing unaligned fastq.gz files"
-        distribute_task_name = parallel_distribute_files("unaligned", fastq_groups, distributions, filter_task_name)
-        waiton_task_name = distribute_task_name
+        distribute_task_name = parallel_distribute_files("unaligned", fastq_groups, distributions, wait_on_task)
+        wait_on_task = distribute_task_name
       end
-      waiton_task_name
+      wait_on_task
+    end
+
+    def process_undetermined_reads distributions, wait
+      status "process undetermined unaligned reads"
+      starting_path = @flowcell.paths.unaligned_undetermined_dir
+      output_path = @flowcell.paths.unaligned_undetermined_combine_dir
+      options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => false}
+      wait_on_task = wait
+
+      fastq_file_groups = group_fastq_files starting_path, output_path, options
+
+      unless @options[:only_distribute]
+        cat_task_name = parallel_cat_files "undetermined", fastq_file_groups, wait_on_task
+        wait_on_task = cat_task_name
+      end
+
+      unless @options[:no_distribute]
+        status "distributing unaligned undetermined fastq.gz files"
+        distribute_task_name = parallel_distribute_files("undetermined", fastq_file_groups, distributions, wait_on_task)
+        wait_on_task = distribute_task_name
+      end
+
+      wait_on_task
     end
 
 
@@ -275,24 +302,22 @@ module Illuminati
     # Executes commands related to export files, including renaming them
     # and distributing them to project directories.
     #
-    def run_aligned distributions
+    def run_aligned distributions, wait_on_task
       status "processing export files"
-      waiton_task_name = nil
       aligned_project_dir = get_aligned_project_dir
       export_groups = group_export_files(aligned_project_dir,
                                          @flowcell.paths.eland_combine_dir)
-      cat_task_id = nil
       unless @options[:only_distribute]
-        cat_task_id = parallel_cat_files("aligned", export_groups)
-        waiton_task_name = cat_task_id
+        cat_task_id = parallel_cat_files("aligned", export_groups, wait_on_task)
+        wait_on_task = cat_task_id
       end
 
       unless @options[:no_distribute] or distributions.empty?
         status "distributing export files"
-        parallel_task_id = parallel_distribute_files("aligned", export_groups, distributions, cat_task_id)
-        waiton_task_name = parallel_task_id
+        parallel_task_id = parallel_distribute_files("aligned", export_groups, distributions, wait_on_task)
+        wait_on_task = parallel_task_id
       end
-      waiton_task_name
+      wait_on_task
     end
 
     def get_aligned_project_dir
@@ -539,8 +564,7 @@ module Illuminati
       task_id
     end
 
-    def parallel_distribute_to_unique distributions, full_source_paths, dependency = nil
-
+    def parallel_distribute_to_unique prefix, distributions, full_source_paths, dependency = nil
       database = []
       distributions = [distributions].flatten
       full_source_paths = [full_source_paths].flatten
@@ -598,24 +622,6 @@ module Illuminati
             end
           end
         end
-      end
-    end
-
-    def process_undetermined_reads distributions, wait
-      status "process undetermined unaligned reads"
-      starting_path = @flowcell.paths.unaligned_undetermined_dir
-      output_path = @flowcell.paths.unaligned_undetermined_combine_dir
-      options = {:prefix => "s_", :suffix => ".fastq.gz", :exclude_undetermined => false}
-
-      fastq_file_groups = group_fastq_files starting_path, output_path, output_path, options
-
-      unless @options[:only_distribute]
-        cat_files fastq_file_groups
-      end
-
-      unless @options[:no_distribute]
-        status "distributing unaligned undetermined fastq.gz files"
-        distribute_files fastq_file_groups, distributions
       end
     end
 
@@ -779,6 +785,8 @@ module Illuminati
           command += " -hold_jid #{dependency}"
         end
         command += " -N #{full_task_name} #{wrapper_script} #{child_process_script} #{args.join(" ")}"
+        puts child_process_script
+        puts command
         execute(command)
       end
       full_task_name
