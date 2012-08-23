@@ -47,6 +47,7 @@ module Illuminati
     def execute command
       output command
       result = %x[#{command}] unless @test
+      puts result
       result
     end
 
@@ -110,7 +111,7 @@ module Illuminati
           post_command = "#{POSTRUN_SCRIPT} #{flowcell.flowcell_id} > post_run.out 2>&1"
           command = "cd #{flowcell.aligned_dir};"
           # command += " qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_align_script_path} \\"#{post_command}\\""
-          command += " qsub -cwd -v PATH -pe make #{NUM_PROCESSES/2} #{local_align_script_path}"
+          #command += " qsub -cwd -v PATH -pe make #{NUM_PROCESSES/2} #{local_align_script_path}"
           # command += " nohup make -j 8 POST_RUN_COMMAND=\\"#{post_command}\\" all > make.aligned.out 2>&1  &"
           command += " qsub -cwd -v PATH #{local_align_script_path} \"#{post_command}\""
           execute command
