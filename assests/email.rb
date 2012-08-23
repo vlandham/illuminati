@@ -7,4 +7,4 @@ require 'illuminati/emailer'
 step = ARGV[0]
 flowcell = ARGV[1]
 
-Emailer.email "#{step} step finished for #{flowcell}"
+Illuminati::Emailer.email "#{step} step finished for #{flowcell}"
