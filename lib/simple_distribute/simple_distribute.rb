@@ -43,7 +43,7 @@ module SimpleDistribute
 
       db_filename = ""
       if options[:database]
-        db_filename = write_database task_name, database
+        db_filename = write_database task_name, options[:database]
       end
 
       full_task_name = task_name

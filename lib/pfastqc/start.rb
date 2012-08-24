@@ -5,7 +5,7 @@ require 'simple_distribute'
 
 WORKER_SCRIPT = File.expand_path(File.join(File.dirname(__FILE__), "worker.rb"))
 COMBINER_SCRIPT = File.expand_path(File.join(File.dirname(__FILE__), "combine.rb"))
-EMAIL_SCRIPT = File.expand_path(File.join(File.dirname(__FILE__), "..", "assests", "email.rb"))
+EMAIL_SCRIPT = File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "assests", "email.rb"))
 
 module PFastqc
   class Start
@@ -49,11 +49,11 @@ module PFastqc
 
       distributer = SimpleDistribute::Distributer.new(db_directory)
 
-      worker_task_name = Distributer.submit(WORKER_SCRIPT, {:prefix => "fastqc", :database => database})
+      worker_task_name = distributer.submit(WORKER_SCRIPT, {:prefix => "fastqc", :database => database})
 
-      combiner_task_name = Distributer.submit(COMBINER_SCRIPT, {:prefix => "fastqc", :dependency => worker_task_name}, :args => output_directory)
+      combiner_task_name = distributer.submit(COMBINER_SCRIPT, {:prefix => "fastqc", :dependency => worker_task_name, :args => output_directory})
 
-      email_task_name = Distributer.submit(EMAIL_SCRIPT, {:prefix => "fastqc", :dependency => combiner_task_name, :args => "FASTQC A_FLOWCELL"
+      email_task_name = distributer.submit(EMAIL_SCRIPT, {:prefix => "fastqc", :dependency => combiner_task_name, :args => "FASTQC A_FLOWCELL"})
     end
   end
 end

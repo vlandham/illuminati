@@ -14,9 +14,7 @@ if !File.exists? fastq_directory
   exit(1)
 end
 
-module PFastqc
 
-  starter = Start.new(FASTQC_PATH)
-  starter.run(fastq_directory)
+starter = PFastqc::Start.new(FASTQC_PATH)
+starter.run(fastq_directory)
 
-end
