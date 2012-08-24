@@ -1,0 +1,22 @@
+#! /usr/bin/env ruby
+
+
+$:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
+
+require 'pfastqc/start'
+
+FASTQC_PATH = `which fastqc`.chomp
+
+fastq_directory = ARGV[0]
+
+if !File.exists? fastq_directory
+  puts "ERROR: fastq directory not found: #{fastq_directory}."
+  exit(1)
+end
+
+module PFastqc
+
+  starter = Start.new(FASTQC_PATH)
+  starter.run(fastq_directory)
+
+end

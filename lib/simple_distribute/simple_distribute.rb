@@ -30,7 +30,7 @@ module SimpleDistribute
       db_filename
     end
 
-    def submit task_script, options
+    def submit task_script, options = {:database => nil, :prefix => "run", :dependency => nil, :args => nil}
       task_name = get_name(task_script)
       if !File.exists?(task_script)
         puts "# ERROR: no process script found: #{task_script}"
