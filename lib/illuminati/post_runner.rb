@@ -735,9 +735,11 @@ module Illuminati
         log "# ERROR: no wrapper script found: #{wrapper_script}"
         return nil
       end
+      full_task_name = "#{prefix}_#{task_name}"
+
       # save database to place that can be
       # found by child processes
-      db_filename = File.expand_path(File.join(@flowcell.paths.qsub_db_path, "#{task_name}.json"))
+      db_filename = File.expand_path(File.join(@flowcell.paths.qsub_db_path, "#{full_task_name}.json"))
       command = "mkdir -p #{File.dirname(db_filename)}"
       execute command
 
@@ -745,7 +747,6 @@ module Illuminati
         file.puts database.to_json
       end
 
-      full_task_name = "#{prefix}_#{task_name}"
 
       Dir.chdir(@flowcell.paths.qsub_db_path) do
         # run for all jobs in database

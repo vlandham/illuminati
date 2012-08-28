@@ -7,7 +7,6 @@ require 'json'
 require 'parallel'
 require 'illuminati'
 
-
 TEST = false
 
 def get_manual_paths manual_path

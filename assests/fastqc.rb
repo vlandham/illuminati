@@ -1,17 +1,21 @@
 
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
-require 'illuminati'
+require 'pfastqc/start'
 
 process_index = ENV["SGE_TASK_ID"].to_i - 1
 
-path = ARGV[0]
+FASTQC_PATH = `which fastqc`.chomp
 
-command = "cd #{path};"
-script = Illuminati::ScriptPaths.fastqc_script
-command += " #{script} -v --files \"*.fastq.gz\""
+fastq_directory = ARGV[0]
 
-puts command
-`#{command}`
+if !File.exists? fastq_directory
+  puts "ERROR: fastq directory not found: #{fastq_directory}."
+  exit(1)
+end
+
+
+starter = PFastqc::Start.new(FASTQC_PATH)
+waiton_task = starter.run(fastq_directory)
 
 

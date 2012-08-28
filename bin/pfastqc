@@ -16,5 +16,5 @@ end
 
 
 starter = PFastqc::Start.new(FASTQC_PATH)
-starter.run(fastq_directory)
+waiton_task = starter.run(fastq_directory)
 

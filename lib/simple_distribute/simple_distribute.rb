@@ -41,15 +41,14 @@ module SimpleDistribute
       return nil unless wrapper_script
       create_db_directory
 
-      db_filename = ""
-      if options[:database]
-        db_filename = write_database task_name, options[:database]
-      end
-
       full_task_name = task_name
-
       if options[:prefix]
         full_task_name = "#{options[:prefix]}_#{task_name}"
+      end
+
+      db_filename = ""
+      if options[:database]
+        db_filename = write_database full_task_name, options[:database]
       end
 
       Dir.chdir(self.db_directory) do
