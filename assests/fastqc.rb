@@ -16,6 +16,11 @@ end
 
 
 starter = PFastqc::Start.new(FASTQC_PATH)
-waiton_task = starter.run(fastq_directory)
+starter.run(fastq_directory)
+
+# wait until run completes
+
+system("qsub -sync y -b y /bin/sleep 10")
+
 
 

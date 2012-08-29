@@ -779,6 +779,8 @@ module Illuminati
 
       full_task_name = "#{prefix}_#{task_name}"
 
+      system("mkdir -p #{@flowcell.paths.qsub_db_path}")
+
       Dir.chdir(@flowcell.paths.qsub_db_path) do
         # run for all jobs in database
         command = "qsub -cwd -V"
