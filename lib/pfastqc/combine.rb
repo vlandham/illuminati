@@ -86,9 +86,9 @@ module PFastqc
 
         image_lines = plots.map do |plot|
           plot_thumbnail = File.join(relative_fastq_dir, "thumbs", plot["file"])
-          if !File.exists?(plot_thumbnail)
+
+          if !File.exists?(File.join(File.dirname(fastq_dir), plot_thumbnail))
             puts "ERROR: thumbail not present: #{plot_thumbnail}"
-            plot_thumbnail = "N/A"
           end
           "<td><a href=\"#{relative_fastq_dir}/fastqc_report.html#M#{plot["index"]}\"><img border=0 src=\"#{plot_thumbnail}\"></a></td>"
         end
@@ -116,6 +116,10 @@ module PFastqc
 
       write_plots_file(fastqc_directory, fastqc_dirs)
       write_summary_file(fastqc_directory, fastqc_dirs)
+
+      Dir.chdir self.fastqc_directory do
+        system("rm -f *.zip")
+      end
 
     end
 

@@ -3,16 +3,17 @@ $:.unshift(File.join(File.dirname(__FILE__), "..", "simple_distribute"))
 
 require 'simple_distribute'
 
-STARTER_SCRIPT = File.expand_path(File.join(File.dirname(__FILE__), "db_maker.rb"))
 WORKER_SCRIPT = File.expand_path(File.join(File.dirname(__FILE__), "worker.rb"))
 COMBINER_SCRIPT = File.expand_path(File.join(File.dirname(__FILE__), "combine.rb"))
+DISTRIBUTE_SCRIPT = File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "assests", "cp_files.rb"))
 EMAIL_SCRIPT = File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "assests", "email.rb"))
 
 module PFastqc
   class Start
-    attr_accessor :fastqc_path
-    def initialize fastqc_path
+    attr_accessor :fastqc_path, :data
+    def initialize fastqc_path, data = {}
       self.fastqc_path = fastqc_path
+      self.data = data
       if !File.exists? self.fastqc_path
         raise "ERROR - fastqc path not found: #{fastqc_path}"
       end
@@ -22,6 +23,9 @@ module PFastqc
       end
       if !File.exists? COMBINER_SCRIPT
         raise "ERROR - no combiner script found: #{COMBINER_SCRIPT}"
+      end
+      if !File.exists? DISTRIBUTE_SCRIPT
+        raise "ERROR - no distribute script found: #{DISTRIBUTE_SCRIPT}"
       end
       if !File.exists? EMAIL_SCRIPT
         raise "ERROR - no email script found: #{EMAIL_SCRIPT}"
@@ -55,7 +59,27 @@ module PFastqc
 
       combiner_task_name = distributer.submit(COMBINER_SCRIPT, {:prefix => "fastqc", :dependency => worker_task_name, :args => output_directory})
 
-      email_task_name = distributer.submit(EMAIL_SCRIPT, {:prefix => "fastqc", :dependency => combiner_task_name, :args => "FASTQC A_FLOWCELL"})
+      wait_on_task = combiner_task_name
+
+      if self.data["projects"]
+        puts "Projects found!! - distributing to #{self.data["projects"].size} locations"
+        distribute_database = []
+        self.data["projects"].each do |out|
+          distribute_database << {"input" => output_directory, "output" => out, "recursive" => true}
+        end
+
+        distribute_task_name = distributer.submit(DISTRIBUTE_SCRIPT, {:prefix => "fastqc", :dependency => combiner_task_name, :database => distribute_database})
+        wait_on_task = distribute_task_name
+      else
+        puts "NO projects found!! - NOT DISTRIBUTING DATA"
+      end
+
+      flowcell_id = "A_FLOWCELL"
+      if self.data["flowcell_id"]
+        flowcell_id = self.data["flowcell_id"].strip
+      end
+
+      email_task_name = distributer.submit(EMAIL_SCRIPT, {:prefix => "fastqc", :dependency => wait_on_task, :args => "FASTQC #{flowcell_id}"})
       email_task_name
     end
   end

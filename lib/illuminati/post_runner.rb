@@ -180,6 +180,7 @@ module Illuminati
         # unaligned dir
         unaligned_task = process_unaligned_reads distributions
         wait_on_task = unaligned_task
+        log "wait_on_task: #{wait_on_task}"
         submit_one("unaligned", "email", wait_on_task, "UNALIGNED", @flowcell.paths.id)
         # Emailer.email "UNALIGNED step finished for #{@flowcell.paths.id}" unless @options[:test]
       end
@@ -190,8 +191,10 @@ module Illuminati
       end
 
       if steps.include? "undetermined"
-        unaligned_task = process_undetermined_reads distributions, unaligned_task
+        log "undetermined waiting on: #{wait_on_task}"
+        unaligned_task = process_undetermined_reads distributions, wait_on_task
         wait_on_task = unaligned_task
+        log "wait_on_task: #{wait_on_task}"
         submit_one("undetermined", "email", wait_on_task, "UNDETERMINED", @flowcell.paths.id)
       end
 
@@ -199,16 +202,20 @@ module Illuminati
         system("mkdir -p #{@flowcell.paths.fastqc_dir}")
         fastqc_task = nil
         unless @options[:only_distribute]
-          fastqc_task = parallel_run_fastqc @flowcell.paths.fastq_combine_dir, unaligned_task
+          log "fastqc waiting on: #{wait_on_task}"
+          fastqc_task = parallel_run_fastqc @flowcell.paths.fastq_combine_dir, wait_on_task, distributions
         end
-        wait_on_task = parallel_distribute_to_unique "fastqc", distributions, @flowcell.paths.fastqc_dir, fastqc_task
-        submit_one("fastqc", "email", fastqc_task, "FASTQC", @flowcell.paths.id)
+        # wait_on_task = parallel_distribute_to_unique "fastqc", distributions, @flowcell.paths.fastqc_dir, fastqc_task
+        # log "wait_on_task: #{wait_on_task}"
+        # submit_one("fastqc", "email", wait_on_task, "FASTQC", @flowcell.paths.id)
       end
 
       if steps.include? "aligned"
+        log "aligned waiting on: #{wait_on_task}"
         aligned_task = run_aligned distributions, wait_on_task
         wait_on_task = aligned_task
-        submit_one("aligned", "email", aligned_task, "ALIGNED", @flowcell.paths.id)
+        log "wait_on_task: #{wait_on_task}"
+        submit_one("aligned", "email", wait_on_task, "ALIGNED", @flowcell.paths.id)
       end
 
       if steps.include? "stats"
@@ -676,17 +683,36 @@ module Illuminati
       end
     end
 
+    def create_fastqc_database fastq_path, distributions
+      output_filename = File.join(fastq_path, "fastqc", "fastqc_starting_data.json")
+      system("mkdir -p #{File.dirname(output_filename)}")
+      database = {}
+      unique_distributions = distributions.collect {|d| d[:path]}.uniq
+
+      database["flowcell_id"] = @flowcell.paths.id
+      unless unique_distributions.empty?
+        database["projects"] = unique_distributions
+      end
+
+      File.open(output_filename, 'w') do |file|
+        file.puts database.to_json
+      end
+
+      output_filename
+    end
+
     #
     # Runs fastqc on all relevant files in fastq_path
     # output is genearted fastq_path/fastqc
     #
-    def parallel_run_fastqc fastq_path, dependency = nil
+    def parallel_run_fastqc fastq_path, dependency = nil, distributions = []
       status "running fastqc"
       prefix = "fastqc"
       cwd = Dir.pwd
       task_name = nil
+      output_filename = create_fastqc_database(fastq_path, distributions)
       if check_exists(fastq_path)
-        task_name = submit_one(prefix, "fastqc", dependency, fastq_path)
+        task_name = submit_one(prefix, "fastqc", dependency, "#{fastq_path} #{output_filename}")
       end
       task_name
     end
@@ -788,8 +814,6 @@ module Illuminati
           command += " -hold_jid #{dependency}"
         end
         command += " -N #{full_task_name} #{wrapper_script} #{child_process_script} #{args.join(" ")}"
-        puts child_process_script
-        puts command
         execute(command)
       end
       full_task_name

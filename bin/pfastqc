@@ -3,11 +3,13 @@
 
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
+require 'json'
 require 'pfastqc/start'
 
 FASTQC_PATH = `which fastqc`.chomp
 
 fastq_directory = ARGV[0]
+fastqc_data_filename = ARGV[1]
 
 if !File.exists? fastq_directory
   puts "ERROR: fastq directory not found: #{fastq_directory}."
@@ -15,6 +17,14 @@ if !File.exists? fastq_directory
 end
 
 
-starter = PFastqc::Start.new(FASTQC_PATH)
+puts "fastqc data filename: #{fastqc_data_filename}"
+
+fastqc_data = {}
+if fastqc_data_filename
+  fastqc_data = JSON.parse(File.open(fastqc_data_filename,'r').read)
+end
+
+
+starter = PFastqc::Start.new(FASTQC_PATH, fastqc_data)
 waiton_task = starter.run(fastq_directory)
 

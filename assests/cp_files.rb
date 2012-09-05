@@ -8,6 +8,10 @@ database = JSON.parse(File.open(database_filename, 'r').read)
 
 entry = database[database_index]
 
+command = "mkdir -p #{File.dirname(entry["output"])}"
+puts command
+`#{command}`
+
 flag = entry["recursive"] ? "-r" : ""
 
 command = "cp #{flag} #{entry["input"]} #{entry["output"]}"
