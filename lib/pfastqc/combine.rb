@@ -112,7 +112,7 @@ module PFastqc
       thumber = ThumbMaker.new(self.fastqc_directory)
       thumber.thumb
       fastqc_dirs = get_fastqc_directories
-      fastqc_dirs = fastqc_dirs.sort {|a,b| a.split("_")[1] <=> b.split("_")[1]}
+      fastqc_dirs = fastqc_dirs.sort {|a,b| File.basename(a).split("_")[1].to_i <=> File.basename(b).split("_")[1].to_i}
 
       write_plots_file(fastqc_directory, fastqc_dirs)
       write_summary_file(fastqc_directory, fastqc_dirs)
