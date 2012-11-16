@@ -32,7 +32,7 @@ module Illuminati
   # The run method is the main starting point that kicks off all the rest of the process.
   # When done, the primary analysis pipeline should be considered complete.
   #
-  class PostRunner
+  class PostRunnerCluster
     attr_reader :flowcell
     attr_reader :options
     ALL_STEPS = %w{unaligned filter custom undetermined fastqc aligned stats report qcdata lims}
@@ -825,6 +825,7 @@ module Illuminati
     # in the groups hash.
     #
     def filter_fastq_files fastq_groups, output_path
+
       log "# Creating path: #{output_path}"
       execute "mkdir -p #{output_path}"
 

@@ -1,7 +1,7 @@
-require 'illuminati/post_runner'
+require 'illuminati/post_runner_single'
 
 module Illuminati
-  class MiseqPostRunner < PostRunner
+  class MiseqPostRunner < PostRunnerSingle
     DEFAULT_STEPS = %w{unaligned fastqc}
     def initialize flowcell, options = {}
       super(flowcell, options)
@@ -67,6 +67,10 @@ module Illuminati
       stop_flowcell
     end
 
+    def fastq_search_path
+      "*.fastq.gz"
+    end
+
     def get_sample_sheet_data
       sample_sheet_filename = File.join(@flowcell.paths.unaligned_dir, "SampleSheet.csv")
       if !File.exists?(sample_sheet_filename)
@@ -95,17 +99,32 @@ module Illuminati
 
       sample_sheet_data = get_sample_sheet_data()
 
-
       file_data = files.collect do |file|
         base_name = File.basename(file)
+        puts base_name
         match = base_name =~ $NAME_PATTERN
         raise "ERROR: #{file} does not match expected file name pattern" unless match
         data = {:name => base_name, :path => file,
-                :sample_name => $1, 
+                :sample_name => $1,
                 :lane => $3.to_i, :read => $4.to_i, :set => $5.to_i}
-        barcode = sample_sheet_data["samples"][$2.to_i - 1]["index"]
+        barcode = ""
+        if $1 == "Undetermined"
+          barcode = "Undetermined"
+        else
+          sample_sheet_sample = sample_sheet_data["samples"][$2.to_i - 1]
+          puts data.inspect
+          if sample_sheet_sample["Sample_ID"] != data[:sample_name]
+            puts "ERROR: SampleSheet.csv and filenames do not match"
+            puts "#{sample_sheet_sample["Sample_ID"]} -- #{data[:sample_name]}"
+            raise "ERROR: SampleSheet filename mismatch"
+          end
+          barcode = sample_sheet_sample["index"]
+          if sample_sheet_sample["index2"]
+            barcode += "_#{sample_sheet_sample["index2"]}"
+          end
+        end
 
-        if !(barcode =~ /([ATCGN]+|NoIndex|Undetermined)/)
+        if !(barcode =~ /([ATCGN_]+|NoIndex|Undetermined)/)
           raise "ERRROR: invalid barcode for sample: #{barcode}"
         end
         data[:barcode] = barcode

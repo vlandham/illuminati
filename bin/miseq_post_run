@@ -34,7 +34,7 @@ if __FILE__ == $0
     o.on('-n', '--no_distribute', 'No distribute. only processing') {|b| options[:no_distribute] = true}
 
     o.on('-p', '--path /file/path', String, 'Manually specify the flowcell file path') {|b| options[:paths] = get_manual_paths(b)}
-    o.on('-s', "--steps #{Illuminati::PostRunner::ALL_STEPS.join(",")}" , Array, 'Specify only which steps of the pipeline should be executed') {|b| options[:steps] = b.collect {|step| step} }
+    o.on('-s', "--steps #{Illuminati::PostRunnerSingle::ALL_STEPS.join(",")}" , Array, 'Specify only which steps of the pipeline should be executed') {|b| options[:steps] = b.collect {|step| step} }
     o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
     o.on('-h', '--help', 'Displays help screen, then exits') {puts o; exit}
   end
