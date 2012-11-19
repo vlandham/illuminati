@@ -34,11 +34,14 @@ module Illuminati
     # {
     #   :lane => String name of lane (1 - 8),
     #   :name => Sample name.
+    #   :lib_id => Sample Library ID
     #   :genome => Code for genome used for lane. Should correlate to folder name in genomes dir,
     #   :protocol => Should be either "eland_extended" or "eland_pair",
     #   :barcode_type => Should be :illumina, :custom, or :none
     #   :barcode => If :barcode_type is not :none, this provides the 6 sequence barcode
     #   :raw_barcode => Sequence to feed back to LIMS for reported barcode. No restriction on content.
+    #   :order => Sample order
+    #
     # }
     #
     def sample_data_for flowcell_id
@@ -75,6 +78,9 @@ module Illuminati
           sample_data[:barcode] = ""
           sample_data[:barcode_type] = :none
         end
+
+        sample_data[:lib_id] = lims_sample_data["libID"]
+        sample_data[:order] = lims_sample_data["prnOrderNo"]
 
 
         if lims_sample_data["isControl"] == 1
