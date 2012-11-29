@@ -233,7 +233,7 @@ module Illuminati
       end
 
       if steps.include? "lims"
-        notify_lims
+        notify_lims(wait_on_task)
       end
 
       stop_flowcell(wait_on_task)
@@ -392,12 +392,13 @@ module Illuminati
     # Sends flowcell stats to Lims
     # and marks flowcell as complete
     #
-    def notify_lims
+    def notify_lims dependency
       status "notifying lims"
 
-      notifier = Illuminati::LimsNotifier.new(@flowcell)
-      notifier.upload_to_lims
-      notifier.complete_analysis
+      task_name = submit_one("lims", "lims_notify", dependency, "#{@flowcell.id}")
+      # notifier = Illuminati::LimsNotifier.new(@flowcell)
+      # notifier.upload_to_lims
+      # notifier.complete_analysis
     end
 
     #
