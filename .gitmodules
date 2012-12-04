@@ -1,0 +1,3 @@
+[submodule "spikein_analysis"]
+	path = spikein_analysis
+	url = git@github.com:metalhelix/spikein_analysis.git
