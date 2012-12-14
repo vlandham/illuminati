@@ -1,5 +1,7 @@
 #! /usr/bin/env ruby
 
+require 'optparse'
+
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
 BASE_BIN_DIR = File.expand_path(File.dirname(__FILE__))
@@ -66,7 +68,7 @@ module Illuminati
     #
     # Main entry point for AlignRunner.
     #
-    def run(flowcell_id)
+    def run(flowcell_id, options)
       output "starting alignment step for #{flowcell_id}"
       Emailer.email "starting align step for #{flowcell_id}" unless @test
       SolexaLogger::log flowcell_id, "starting alignment", @test
@@ -111,9 +113,15 @@ module Illuminati
           post_command = "#{POSTRUN_SCRIPT} #{flowcell.flowcell_id} > post_run.out 2>&1"
           command = "cd #{flowcell.aligned_dir};"
           # command += " qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_align_script_path} \\"#{post_command}\\""
-          #command += " qsub -cwd -v PATH -pe make #{NUM_PROCESSES/2} #{local_align_script_path}"
+          # command += " qsub -cwd -v PATH -pe make #{NUM_PROCESSES/2} #{local_align_script_path}"
           # command += " nohup make -j 8 POST_RUN_COMMAND=\\"#{post_command}\\" all > make.aligned.out 2>&1  &"
-          command += " qsub -cwd -v PATH #{local_align_script_path} \"#{post_command}\""
+          # command += " qsub -cwd -v PATH #{local_align_script_path} \\"#{post_command}\\""
+          command += " qsub -cwd -v PATH #{local_align_script_path}"
+          if options[:post_run]
+            command += " \"#{post_command}\""
+          else
+            puts "NOT PERFORMING POSTRUN"
+          end
           execute command
 
         else
@@ -129,6 +137,20 @@ end
 if __FILE__ == $0
   flowcell_id = ARGV[0]
 
+  options = {}
+  options[:post_run] = true
+
+  opts = OptionParser.new do |o|
+    o.banner = "Usage: align_runner.rb [Flowcell Id] [options]"
+    # o.on('-t', '--test', 'do not write out to disk') {|b| options[:test] = b}
+    o.on('--no_post_run', 'No post run. only alignment') {|b| options[:post_run] = false}
+
+    o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
+    o.on('-h', '--help', 'Displays help screen, then exits') {puts o; exit}
+  end
+
+  opts.parse!
+
   if flowcell_id
     puts "Flowcell ID: #{flowcell_id}"
   else
@@ -138,5 +160,5 @@ if __FILE__ == $0
   end
 
   runner = Illuminati::AlignRunner.new
-  runner.run(flowcell_id)
+  runner.run(flowcell_id, options)
 end
