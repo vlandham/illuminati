@@ -2,9 +2,31 @@ require 'illuminati/post_runner_single'
 
 module Illuminati
   class MiseqPostRunner < PostRunnerSingle
-    DEFAULT_STEPS = %w{unaligned fastqc}
+    ALL_STEPS = %w{setup unaligned undetermined fastqc aligned stats report qcdata lims}
+    DEFAULT_STEPS = %w{setup unaligned fastqc}
+
+    ALIGNMENT_FILE_MATCHES = ["*.bam*", "*.vcf"]
+    STATS_FILE_MATCHES = ["Alignment/ResequencingRunStatistics.xml", "Alignment/Summary.htm", "Alignment/Summary.xml"]
+
     def initialize flowcell, options = {}
-      super(flowcell, options)
+      options = {:test => false, :steps => ALL_STEPS}.merge(options)
+
+      options[:steps].each do |step|
+        valid = true
+        unless ALL_STEPS.include? step
+          puts "ERROR: invalid step: #{step}"
+          valid = false
+        end
+
+        if !valid
+          puts "Valid steps: #{ALL_STEPS.join(", ")}"
+          raise "Invalid Step"
+        end
+      end
+
+      @flowcell = flowcell
+      @options = options
+      @post_run_script = nil
     end
 
     #
@@ -21,6 +43,10 @@ module Illuminati
 
       steps = @options[:steps]
       status "running steps: #{steps.join(", ")}"
+
+      if steps.include? "setup"
+        copy_sample_sheet
+      end
 
       if steps.include? "unaligned"
         # unaligned dir
@@ -47,8 +73,9 @@ module Illuminati
       end
 
       if steps.include? "stats"
-        create_custom_stats_files
-        distribute_custom_stats_files distributions
+        # create_custom_stats_files
+        # distribute_custom_stats_files distributions
+        run_stats distributions
       end
 
       if steps.include? "report"
@@ -67,6 +94,17 @@ module Illuminati
       stop_flowcell
     end
 
+    def copy_sample_sheet
+      source = File.join(@flowcell.paths.base_dir, "SampleSheet.csv")
+      destination = File.join(@flowcell.paths.unaligned_dir, "SampleSheet.csv")
+
+      if !File.exists? source
+        puts "ERROR: cannot find SampleSheet at: #{source}"
+      end
+
+      execute("cp #{source} #{destination}")
+    end
+
     def fastq_search_path
       "*.fastq.gz"
     end
@@ -79,6 +117,26 @@ module Illuminati
       end
       data = SampleSheetParser.data_for(sample_sheet_filename)
       data
+    end
+
+    def run_aligned distributions
+      alignment_dir = "Alignment"
+      ALIGNMENT_FILE_MATCHES.each do |match|
+        files = Dir.glob(File.join(@flowcell.paths.unaligned_dir, alignment_dir, match))
+        distribute_to_unique distributions, files
+      end
+    end
+
+    def run_stats distributions
+      all_files = []
+      STATS_FILE_MATCHES.each do |match|
+        files = Dir.glob(File.join(@flowcell.paths.unaligned_dir, match))
+        all_files << files
+      end
+      stats_distributions = distributions.collect {|d| e = d.clone; e[:path] = File.join(e[:path], "stats"); e}
+      all_files = all_files.flatten
+      puts all_files.inspect
+      distribute_to_unique stats_distributions, all_files
     end
 
     #
@@ -107,7 +165,7 @@ module Illuminati
         data = {:name => base_name, :path => file,
                 :sample_name => $1,
                 :lane => $3.to_i, :read => $4.to_i, :set => $5.to_i}
-        barcode = ""
+        barcode = nil
         if $1 == "Undetermined"
           barcode = "Undetermined"
         else
@@ -122,6 +180,10 @@ module Illuminati
           if sample_sheet_sample["index2"]
             barcode += "_#{sample_sheet_sample["index2"]}"
           end
+        end
+
+        if !barcode
+          barcode = "NoIndex"
         end
 
         if !(barcode =~ /([ATCGN_]+|NoIndex|Undetermined)/)
