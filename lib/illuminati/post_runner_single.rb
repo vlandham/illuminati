@@ -37,8 +37,8 @@ module Illuminati
   class PostRunnerSingle
     attr_reader :flowcell
     attr_reader :options
-    ALL_STEPS = %w{unaligned filter custom undetermined fastqc aligned stats report qcdata lims}
-    DEFAULT_STEPS = %w{unaligned undetermined fastqc aligned stats report qcdata lims}
+    ALL_STEPS = %w{unaligned filter custom undetermined fastqc aligned stats report qcdata lims_upload lims_complete}
+    DEFAULT_STEPS = %w{unaligned undetermined fastqc aligned stats report qcdata lims lims_upload lims_complete}
 
     #
     # New PostRunner instance
@@ -213,8 +213,12 @@ module Illuminati
         distribute_to_qcdata
       end
 
-      if steps.include? "lims"
-        notify_lims
+      if steps.include? "lims_upload"
+        upload_lims
+      end
+
+      if steps.include? "lims_complete"
+        complete_lims
       end
 
       stop_flowcell
@@ -337,11 +341,17 @@ module Illuminati
     # Sends flowcell stats to Lims
     # and marks flowcell as complete
     #
-    def notify_lims
-      status "notifying lims"
+    def upload_lims
+      status "uploading to lims"
 
       notifier = Illuminati::LimsNotifier.new(@flowcell)
       notifier.upload_to_lims
+    end
+
+    def complete_lims
+      status "completing lims"
+
+      notifier = Illuminati::LimsNotifier.new(@flowcell)
       notifier.complete_analysis
     end
 
