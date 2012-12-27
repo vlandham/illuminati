@@ -237,7 +237,11 @@ module Illuminati
       end
 
       if steps.include? "lims_complete"
-        complete_lims(wait_on_task)
+        wait_time = 5
+        if steps.include? "fastqc"
+          wait_time = 40
+        end
+        complete_lims(wait_on_task, wait_time)
       end
 
       stop_flowcell(wait_on_task)
@@ -404,10 +408,10 @@ module Illuminati
     #
     # Mark flowcell as complete in LIMs
     #
-    def complete_lims dependency
+    def complete_lims dependency, wait_time
       status "completing lims"
 
-      task_name = submit_one("lims", "lims_complete", dependency, "#{@flowcell.id}")
+      task_name = submit_one("lims", "lims_complete", dependency, "#{@flowcell.id} #{wait_time}")
     end
 
     #

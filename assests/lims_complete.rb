@@ -6,6 +6,17 @@ require 'illuminati'
 TEST = false
 # only works with default flowcell paths
 flowcell_id = ARGV[0]
+wait_time = ARGV[1]
+
+if wait_time
+  wait_time = wait_time.to_i
+else
+  wait_time = 0
+end
+
+if wait_time and wait_time > 0
+  sleep(wait_time.minutes)
+end
 
 paths = Illuminati::Paths
 fc_paths = Illuminati::FlowcellPaths.new flowcell_id, TEST, paths
