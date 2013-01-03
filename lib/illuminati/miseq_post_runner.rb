@@ -3,7 +3,7 @@ require 'illuminati/post_runner_single'
 module Illuminati
   class MiseqPostRunner < PostRunnerSingle
     ALL_STEPS = %w{setup unaligned undetermined fastqc aligned stats report qcdata lims}
-    DEFAULT_STEPS = %w{setup unaligned fastqc aligned stats}
+    DEFAULT_STEPS = %w{setup unaligned fastqc aligned stats report}
 
     ALIGNMENT_FILE_MATCHES = ["*.bam*", "*.vcf"]
     STATS_FILE_MATCHES = ["Alignment/ResequencingRunStatistics.xml", "Alignment/Summary.htm", "Alignment/Summary.xml"]
