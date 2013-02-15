@@ -108,7 +108,7 @@ module Illuminati
       script.write command
       script.write ""
 
-      command = "#{CASAVA_PATH}/configureBclToFastq.pl --mismatches 1 --input-dir #{flowcell.base_calls_dir} --output-dir #{flowcell.unaligned_dir}  --flowcell-id #{flowcell.flowcell_id}"
+      command = "#{CASAVA_PATH}/configureBclToFastq.pl --ignore-missing-stats --mismatches 1 --input-dir #{flowcell.base_calls_dir} --output-dir #{flowcell.unaligned_dir}  --flowcell-id #{flowcell.flowcell_id}"
       script.write command
       script.write ""
 
