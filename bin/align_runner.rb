@@ -117,7 +117,7 @@ module Illuminati
           # command += " nohup make -j 8 POST_RUN_COMMAND=\\"#{post_command}\\" all > make.aligned.out 2>&1  &"
           # command += " qsub -cwd -v PATH #{local_align_script_path} \\"#{post_command}\\""
           command += " qsub -cwd -v PATH #{local_align_script_path}"
-          if options[:post_run]
+          if options[:postrun]
             command += " \"#{post_command}\""
           else
             puts "NOT PERFORMING POSTRUN"
@@ -138,12 +138,12 @@ if __FILE__ == $0
   flowcell_id = ARGV[0]
 
   options = {}
-  options[:post_run] = true
+  options[:postrun] = true
 
   opts = OptionParser.new do |o|
     o.banner = "Usage: align_runner.rb [Flowcell Id] [options]"
     # o.on('-t', '--test', 'do not write out to disk') {|b| options[:test] = b}
-    o.on('--no_post_run', 'No post run. only alignment') {|b| options[:post_run] = false}
+    o.on('--no-postrun', 'No post run. only alignment') {|b| options[:postrun] = false}
 
     o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
     o.on('-h', '--help', 'Displays help screen, then exits') {puts o; exit}

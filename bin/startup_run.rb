@@ -17,6 +17,7 @@
 
 $:.unshift(File.join(File.dirname(__FILE__), "..", "lib"))
 
+require 'optparse'
 require 'illuminati'
 
 
@@ -59,7 +60,8 @@ module Illuminati
   # it to the run script.
   #
   class Starter
-    def self.write_admin_script flowcell_id
+    def self.write_admin_script flowcell_id, options = {}
+      @options = options
       flowcell_id = flowcell_id.upcase
 
       flowcell = FlowcellPaths.new flowcell_id
@@ -83,18 +85,25 @@ module Illuminati
 
       script.write ""
 
-      command = "#{CONFIG_SCRIPT} #{flowcell_id}"
+      command = "#{CONFIG_SCRIPT} --lanes #{@options[:lanes]} #{flowcell_id}"
       results = %x[#{command}]
 
       # add the output file to the command as we want it
       # to generate the file when we run this script for reals
-      command = command + " config.txt SampleSheet.csv"
+      if @options[:create_sample_sheet]
+        command += " -s #{@options[:sample_sheet]}"
+      end
+
+      if @options[:create_config]
+        command += command + " -c config.txt"
+      end
+
       script.write command
 
       results.split("\n").each {|line| script.write "# #{line}"}
       script.write ""
 
-      command = "cp SampleSheet.csv #{flowcell.base_calls_dir}"
+      command = "cp #{@options[:sample_sheet]} #{flowcell.base_calls_dir}"
       script.write command
 
       command = "cd #{flowcell.base_calls_dir}"
@@ -109,6 +118,11 @@ module Illuminati
       script.write ""
 
       command = "#{CASAVA_PATH}/configureBclToFastq.pl --ignore-missing-stats --mismatches 1 --input-dir #{flowcell.base_calls_dir} --output-dir #{flowcell.unaligned_dir}  --flowcell-id #{flowcell.flowcell_id}"
+
+      if @options[:type] == :dual
+        command += " --use-bases-mask Y*,I*,I*,Y*"
+      end
+
       script.write command
       script.write ""
 
@@ -127,12 +141,14 @@ module Illuminati
 
       local_bcl2fastq_script_path = File.join(flowcell.unaligned_dir, BCL2FASTQ_SCRIPT)
 
-      align_command = "#{ALIGN_SCRIPT} #{flowcell.flowcell_id} > run_align.out 2>&1"
-      # command = "nohup make -j 4 POST_RUN_COMMAND=\\"#{align_command}\\" > make.unaligned.out 2>&1 &"
-      # command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_bcl2fastq_script_path} \\"#{align_command}\\""
-      # command = "qsub -cwd -v PATH -pe make #{NUM_PROCESSES} #{local_bcl2fastq_script_path}"
-      # command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path} \\"#{align_command}\\""
-      command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path} \"#{align_command}\""
+      command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path}"
+
+      if @options[:align]
+        align_options = @options[:postrun] ? "" : "--no-postrun"
+        align_command = "#{ALIGN_SCRIPT} #{flowcell.flowcell_id} #{align_options} > run_align.out 2>&1"
+        command += "  \"#{align_command}\""
+      end
+
       script.write command
       script.write ""
 
@@ -146,6 +162,32 @@ end
 
 if __FILE__ == $0
   flowcell_id = ARGV[0]
+  options = {}
+  options[:lanes] = [1,2,3,4,5,6,7,8]
+  options[:type] = :single
+  options[:align] = true
+  options[:postrun] = true
+  options[:create_sample_sheet] = true
+  options[:create_config] = true
+  options[:sample_sheet] = "SampleSheet.csv"
+
+  opts = OptionParser.new do |o|
+    o.banner = "Usage: startup_run.rb [Flowcell Id] [options]"
+    o.on('-d', '--dual', 'Flowcell is dual indexed') {|b| options[:type] = :dual}
+    o.on( '--no-align', 'Disable the align step') {|b| options[:align] = false}
+    o.on( '--no-postrun', 'Disable the align step') {|b| options[:postrun] = false}
+    o.on( '--no-sample_sheet', 'Disable the samplesheet step') {|b| options[:create_sample_sheet] = false}
+    o.on( '--no-config', 'Disable the config step') {|b| options[:create_config] = false}
+    o.on("--lanes 1,2,3,4,5,6,7,8" , Array, 'Specify which lanes should be run') {|b| options[:lanes] = b}
+    o.on('--sample_sheet SampleSheet.csv', String, 'Specify local samplesheet.csv name') {|b| options[:sample_sheet] = b}
+    o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
+    o.on('-h', '--help', 'Displays help screen, then exits') {puts o; exit}
+  end
+
+  opts.parse!
+  options[:lanes] = options[:lanes].join(",")
+
+  puts options.inspect
 
   if flowcell_id
     puts "Flowcell ID: #{flowcell_id}"
@@ -153,5 +195,5 @@ if __FILE__ == $0
     puts "ERROR: no flow cell ID provided"
     exit
   end
-  Illuminati::Starter::write_admin_script flowcell_id
+  Illuminati::Starter::write_admin_script flowcell_id, options
 end

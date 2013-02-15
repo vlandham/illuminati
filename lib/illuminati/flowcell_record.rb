@@ -392,8 +392,8 @@ module Illuminati
     # Use SampleSheetView to output string representing
     # flowcell in SampleSheet.csv format.
     #
-    def to_sample_sheet
-      view = SampleSheetView.new(self)
+    def to_sample_sheet lanes = [1,2,3,4,5,6,7,8]
+      view = SampleSheetView.new(self, lanes)
       view.write
     end
 
@@ -401,8 +401,8 @@ module Illuminati
     # Use ConfigFileView to output string representing
     # flowcell in config.txt format.
     #
-    def to_config_file
-      view = ConfigFileView.new(self)
+    def to_config_file lanes = [1,2,3,4,5,6,7,8]
+      view = ConfigFileView.new(self, lanes)
       view.write
     end
 

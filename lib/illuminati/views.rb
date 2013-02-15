@@ -18,8 +18,8 @@ module Illuminati
     # == Parameters
     # flowcell_record::
     #   Instance of FlowcellRecord to create a config.txt file from.
-    def initialize flowcell_record
-      @lanes = squash_lanes(flowcell_record)
+    def initialize flowcell_record, lanes = [1,2,3,4,5,6,7,8]
+      @lanes = squash_lanes(flowcell_record, lanes)
       @input_dir = flowcell_record.paths.unaligned_dir
     end
 
@@ -50,11 +50,12 @@ module Illuminati
     # generate config.txt contents for one or more lanes. See the config.txt.erb file
     # for details on how these are used.
     #
-    def squash_lanes flowcell_record
+    def squash_lanes flowcell_record, keep_lanes
       squashed_lane_data = []
       current_lane_index = 0
       squashed_lane_data << flowcell_record.lanes[current_lane_index].to_h
       flowcell_record.lanes[1..-1].each do |lane|
+        next unless keep_lanes.include? lane.number.to_i
         current_lane = squashed_lane_data[current_lane_index]
         if flowcell_record.lanes[current_lane_index].equal(lane)
           current_lane[:lane] = current_lane[:lane].to_s << lane.number.to_s
@@ -81,8 +82,9 @@ module Illuminati
     # == Parameters:
     # flowcell_record::
     #   the FlowcellRecord to generate a SampleSheet.csv from.
-    def initialize flowcell_record
+    def initialize flowcell_record, lanes = [1,2,3,4,5,6,7,8]
       @flowcell = flowcell_record
+      @lanes = lanes
 
     end
 
@@ -107,6 +109,7 @@ module Illuminati
       #but no illumina barcode
       lanes_added = []
       @flowcell.each_sample_with_lane do |sample, lane|
+        next unless @lanes.include?(lane.number.to_i)
         data = []
         if !lanes_added.include?(sample.lane) or (sample.illumina_barcode and !sample.illumina_barcode.empty?)
           data << @flowcell.id << sample.lane << sample.id
