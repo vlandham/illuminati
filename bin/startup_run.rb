@@ -95,7 +95,7 @@ module Illuminati
       end
 
       if @options[:create_config]
-        command += command + " -c config.txt"
+        command += " -c config.txt"
       end
 
       script.write command
