@@ -56,18 +56,24 @@ module Illuminati
         sample_data[:name] = lims_sample_data["sampleName"]
         sample_data[:genome] = lims_sample_data["genomeVersion"]
         sample_data[:protocol] = (lims_sample_data["readType"] == "Single Read") ? "eland_extended" : "eland_pair"
-        sample_data[:barcode_type] = case(lims_sample_data["indexesUsed"])
-                                     when "ILL"
+        sample_data[:barcode_type] = case(lims_sample_data["indexType"])
+                                     when "ILL", "Illumina TruSeq", "Illumina"
                                        :illumina
                                      when "CUST"
                                        :custom
-                                     when "BIOO"
+                                     when "BIOO", "BiooScientific", "BioScientific"
                                        :illumina
                                      else
                                        :none
                                      end
-        sample_data[:barcode] = lims_sample_data["index"] || ""
-        sample_data[:raw_barcode] = lims_sample_data["index"] || ""
+        if lims_sample_data["indexSequences"] and !lims_sample_data["indexSequences"].empty?
+          sample_data[:barcode] = lims_sample_data["indexSequences"].join("_")
+          sample_data[:raw_barcode] = lims_sample_data["indexSequences"].join("_")
+        else
+          sample_data[:barcode] =  ""
+          sample_data[:raw_barcode] =  ""
+        end
+
         sample_data[:raw_barcode_type] = sample_data[:barcode_type]
 
         sample_data[:path] = lims_sample_data["resultsPath"]

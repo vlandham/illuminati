@@ -118,7 +118,7 @@ module Illuminati
       lims_data["laneID"] = sample.lane
       lims_data["readNo"] = read
 
-      lims_data["index"] = sample.raw_barcode unless sample.raw_barcode == ""
+      lims_data["indexSequences"] = [sample.raw_barcode] unless sample.raw_barcode == ""
 
       lims_data
     end
