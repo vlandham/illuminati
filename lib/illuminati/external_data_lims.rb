@@ -61,7 +61,7 @@ module Illuminati
                                        :illumina
                                      when "CUST"
                                        :custom
-                                     when "BIOO", "BiooScientific", "BioScientific"
+                                     when "BIOO", "BiooScientific", "BioScientific", "BiooSci_Fake"
                                        :illumina
                                      else
                                        :none

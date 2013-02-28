@@ -65,7 +65,7 @@ module Illuminati
     end
 
     def self.lims_upload_script
-      File.join(internal_scripts_path, "lims_upload_samples.pl")
+      File.join(internal_scripts_path, "lims_upload_samples.rb")
     end
 
     def self.lims_complete_script
