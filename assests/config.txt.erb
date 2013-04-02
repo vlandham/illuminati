@@ -5,15 +5,18 @@ NUM_LEADING_DIRS_TO_STRIP <%= NUM_LEADING_DIRS_TO_STRIP %>
 EXPT_DIR <%= @input_dir %>
 REFERENCE smed SAMTOOLS_GENOME /n/ngs/igenome/smed/smed.fa
 <% @lanes.each do |lane| %>
-  <% if lane[:genome].strip != "smed" %>
+<% if !lane[:genome].empty? and File.exists?("/n/ngs/igenome/#{lane[:genome]}") %>
+<% if lane[:genome].strip != "smed" %>
 <%= "#{lane[:lane]}:ELAND_GENOME /n/ngs/igenome/#{lane[:genome]}\n" %>
-  <% else %>
+<% else %>
 <%= "#{lane[:lane]}:SAMTOOLS_GENOME /n/ngs/igenome/smed/smed.fa\n" %>
 <%= "#{lane[:lane]}:BARCODE Undetermined ANALYSIS none\n" %>
 <%= "#{lane[:lane]}:REFERENCE unknown ANALYSIS none\n" %>
-  <% end %>
+<% end %>
 <%= "#{lane[:lane]}:ANALYSIS #{lane[:protocol]}\n" %>
 <%= "#{lane[:lane]}:ELAND_MAX_MATCHES 10\n" %>
 <%= "#{lane[:lane]}:USE_BASES #{lane[:protocol] == "eland_pair" ? "Y*,Y*" : "Y*"}\n" %>
+<% else %>
+<%= "#{lane[:lane]}:ANALYSIS none\n" %>
 <% end %>
-
+<% end %>
