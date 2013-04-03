@@ -63,9 +63,23 @@ module Illuminati
                                        :custom
                                      when "BIOO", "BiooScientific", "BioScientific", "BiooSci_Fake", "BiooSci_Trimmed"
                                        :illumina
+                                     when "Nextera", "Dual Custom"
+                                       :illumina
                                      else
                                        :none
                                      end
+
+        sample_data[:barcode_location] = case(lims_sample_data["locOfCustBarcode"])
+                                         when "Illumina TruSeq Style"
+                                           :illumina
+                                         when "Nextera Duel Indexing"
+                                           :dual
+                                         when "Beginning of Insert"
+                                           :custom
+                                         else
+                                           :custom
+                                         end
+
         if lims_sample_data["indexSequences"] and !lims_sample_data["indexSequences"].empty?
           sample_data[:barcode] = lims_sample_data["indexSequences"].join("_")
           sample_data[:raw_barcode] = lims_sample_data["indexSequences"].join("_")
@@ -114,7 +128,7 @@ module Illuminati
     end
 
     def is_valid_barcode? sequence
-      (sequence =~ /^[CAGTUcagtu_]+$/) and (sequence.length > 5)
+      (sequence =~ /^[CAGTUcagtu_-]+$/) and (sequence.length > 5)
     end
 
     #
