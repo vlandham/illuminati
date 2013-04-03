@@ -55,16 +55,24 @@ module Illuminati
       current_lane_index = 0
       squashed_lane_data << flowcell_record.lanes[current_lane_index].to_h
       flowcell_record.lanes[1..-1].each do |lane|
-        next unless keep_lanes.include? lane.number.to_i
+        if !keep_lanes.include?(lane.number.to_i)
+          # puts "skipping #{lane.number}"
+          current_lane_index += 1
+          next
+        end
         current_lane = squashed_lane_data[current_lane_index]
         if flowcell_record.lanes[current_lane_index].equal(lane)
+          # puts "adding #{lane.number} to #{current_lane_index}"
           current_lane[:lane] = current_lane[:lane].to_s << lane.number.to_s
           squashed_lane_data[current_lane_index] = current_lane
         else
+          # puts "new: #{lane.number}"
+          puts "#{lane.to_h.inspect}"
           squashed_lane_data << lane.to_h
           current_lane_index += 1
         end
       end
+      # puts squashed_lane_data.inspect
       squashed_lane_data
     end
   end
@@ -113,7 +121,9 @@ module Illuminati
         data = []
         if !lanes_added.include?(sample.lane) or (sample.illumina_barcode and !sample.illumina_barcode.empty?)
           data << @flowcell.id << sample.lane << sample.id
-          data << sample.genome << sample.illumina_barcode
+          # WARNING:
+          # stupid hack to switch barcode delimiters. probably a terrible idea
+          data << sample.genome << sample.illumina_barcode.gsub("_", "-")
           data << sample.description << sample.control
           data << "see lims" << "see lims"
           data << @flowcell.id

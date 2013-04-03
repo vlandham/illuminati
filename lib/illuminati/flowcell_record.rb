@@ -56,6 +56,7 @@ module Illuminati
     #
     def lane_equal other_sample
       [:genome, :protocol].each do |lane_data|
+        # puts "#{self.send(lane_data)}"
         if self.send(lane_data) != other_sample.send(lane_data)
           return false
         end
@@ -296,7 +297,9 @@ module Illuminati
     # Uses Sample lane_equal
     #
     def equal other_lane
+      # puts "#{self.number} <-> #{other_lane.number}"
       if ((!samples[0]) or (!other_lane.samples[0]))
+        # puts "returning false #{samples[0]}"
         return false
       end
       samples[0].lane_equal(other_lane.samples[0])
