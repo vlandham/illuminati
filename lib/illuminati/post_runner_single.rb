@@ -706,7 +706,7 @@ module Illuminati
     def get_file_data files, suffix_pattern = "\.fastq\.gz"
       files = [files].flatten
 
-      $NAME_PATTERN = /(.*)_([ATCGN]+|NoIndex|Undetermined)_L(\d{3})_R(\d)_(\d{3})#{suffix_pattern}/
+      $NAME_PATTERN = /(.*)_([ATCGN-]+|NoIndex|Undetermined)_L(\d{3})_R(\d)_(\d{3})#{suffix_pattern}/
       # 1_ACTTGA_ACTTGA_L001_R1_002.fastq.gz
       # $1 = "1_ACTTGA"
       # $2 = "ACTTGA"

@@ -178,7 +178,7 @@ module Illuminati
           end
           barcode = sample_sheet_sample["index"]
           if sample_sheet_sample["index2"]
-            barcode += "_#{sample_sheet_sample["index2"]}"
+            barcode += "-#{sample_sheet_sample["index2"]}"
           end
         end
 
