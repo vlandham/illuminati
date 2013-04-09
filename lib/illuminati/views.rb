@@ -19,7 +19,7 @@ module Illuminati
     # flowcell_record::
     #   Instance of FlowcellRecord to create a config.txt file from.
     def initialize flowcell_record, lanes = [1,2,3,4,5,6,7,8]
-      @lanes = squash_lanes(flowcell_record, lanes)
+      @lanes = filter_lanes(flowcell_record, lanes)
       @input_dir = flowcell_record.paths.unaligned_dir
     end
 
@@ -50,6 +50,18 @@ module Illuminati
     # generate config.txt contents for one or more lanes. See the config.txt.erb file
     # for details on how these are used.
     #
+    #
+    def filter_lanes flowcell_record, keep_lanes
+      lane_data = []
+      flowcell_record.lanes.each do |lane|
+        if !keep_lanes.include?(lane.number.to_i)
+          next
+        end
+        lane_data << lane.to_h
+      end
+      lane_data
+    end
+
     def squash_lanes flowcell_record, keep_lanes
       squashed_lane_data = []
       current_lane_index = 0
