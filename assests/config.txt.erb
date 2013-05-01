@@ -3,15 +3,21 @@ EMAIL_SERVER <%= EMAIL_SERVER %>
 WEB_DIR_ROOT <%= WEB_DIR_ROOT %>
 NUM_LEADING_DIRS_TO_STRIP <%= NUM_LEADING_DIRS_TO_STRIP %>
 EXPT_DIR <%= @input_dir %>
-REFERENCE smed SAMTOOLS_GENOME /n/ngs/igenome/smed/smed.fa
+REFERENCE smed SAMTOOLS_GENOME /n/ngs/igenome/smed31/smed.fa
+REFERENCE smed31 SAMTOOLS_GENOME /n/ngs/igenome/smed31/smed.fa
+REFERENCE nemve1 SAMTOOLS_GENOME /n/ngs/igenome/nemve1/nemve1.fa
 <% @lanes.each do |lane| %>
 <% if !lane[:genome].empty? and File.exists?("/n/ngs/igenome/#{lane[:genome]}") %>
-<% if lane[:genome].strip != "smed" %>
-<%= "#{lane[:lane]}:ELAND_GENOME /n/ngs/igenome/#{lane[:genome]}\n" %>
-<% else %>
-<%= "#{lane[:lane]}:SAMTOOLS_GENOME /n/ngs/igenome/smed/smed.fa\n" %>
+<% if lane[:genome].strip == "smed" or  lane[:genome].strip == "smed31" %>
+<%= "#{lane[:lane]}:SAMTOOLS_GENOME /n/ngs/igenome/smed31/smed.fa\n" %>
 <%= "#{lane[:lane]}:BARCODE Undetermined ANALYSIS none\n" %>
 <%= "#{lane[:lane]}:REFERENCE unknown ANALYSIS none\n" %>
+<% elsif lane[:genome].strip == "stella" or lane[:genome].strip == "nemve1" %>
+<%= "#{lane[:lane]}:SAMTOOLS_GENOME /n/ngs/igenome/nemve1/nemve1.fa\n" %>
+<%= "#{lane[:lane]}:BARCODE Undetermined ANALYSIS none\n" %>
+<%= "#{lane[:lane]}:REFERENCE unknown ANALYSIS none\n" %>
+<% else %>
+<%= "#{lane[:lane]}:ELAND_GENOME /n/ngs/igenome/#{lane[:genome]}\n" %>
 <% end %>
 <%= "#{lane[:lane]}:ANALYSIS #{lane[:protocol]}\n" %>
 <%= "#{lane[:lane]}:ELAND_MAX_MATCHES 10\n" %>
