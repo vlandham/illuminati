@@ -70,7 +70,9 @@ module Illuminati
     #
     def run(flowcell_id, options)
       output "starting alignment step for #{flowcell_id}"
-      Emailer.email "starting align step for #{flowcell_id}" unless @test
+      if !options[:fake]
+        Emailer.email "starting align step for #{flowcell_id}" unless @test
+      end
       SolexaLogger::log flowcell_id, "starting alignment", @test
 
       flowcell = nil
@@ -85,8 +87,21 @@ module Illuminati
       end
 
       if flowcell
-        config_file = File.join(flowcell.base_dir, "config.txt")
+        config_file = ""
+        if options[:config] 
+          config_file = options[:config]
+        else
+          config_file = File.join(flowcell.base_dir, "config.txt")
+        end
+
         if File.exists? config_file
+          if options[:force] and File.exists?(flowcell.aligned_dir)
+            command = "rm -rf #{flowcell.aligned_dir}"
+            puts "---- WARNING ----"
+            puts "REMOVING ALIGNMENT DIRECTORY: "
+            puts "#{flowcell.aligned_dir}"
+            execute command
+          end
           command = "#{CASAVA_PATH}/configureAlignment.pl #{config_file} 2>&1"
           status = execute command
 
@@ -122,7 +137,9 @@ module Illuminati
           else
             puts "NOT PERFORMING POSTRUN"
           end
-          execute command
+          if !options[:fake]
+            execute command
+          end
 
         else
           output "ERROR: no config.txt file found in #{flowcell.base_dir}"
@@ -139,11 +156,17 @@ if __FILE__ == $0
 
   options = {}
   options[:postrun] = true
+  options[:fake] = false
+  options[:force] = false
+  options[:config] = nil
 
   opts = OptionParser.new do |o|
     o.banner = "Usage: align_runner.rb [Flowcell Id] [options]"
     # o.on('-t', '--test', 'do not write out to disk') {|b| options[:test] = b}
     o.on('--no-postrun', 'No post run. only alignment') {|b| options[:postrun] = false}
+    o.on('--fake', 'Do not execute last step') {|b| options[:fake] = true}
+    o.on('--force', 'Overwrite Aligned Directory') {|b| options[:force] = true}
+    o.on('--config CONFIG_FILE', 'manually specify config.txt file') {|b| options[:config] = File.expand_path(b)}
 
     o.on('-y', '--yaml YAML_FILE', String, "Yaml configuration file that can be used to load options.","Command line options will trump yaml options") {|b| options.merge!(Hash[YAML::load(open(b)).map {|k,v| [k.to_sym, v]}]) }
     o.on('-h', '--help', 'Displays help screen, then exits') {puts o; exit}
