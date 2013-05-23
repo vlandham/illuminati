@@ -22,6 +22,57 @@ Illuminati is a set of tools geared towards automating portions of Illumina's se
 
 Note: we will refer to this pipeline as the 'primary' analysis pipeline, even though Illumina documentation refers to it as the 'secondary' analysis pipeline.
 
+h2. Quickstart
+
+Let's say you have Illuminati installed here (like we do for some reason):
+
+<pre>
+/n/ngs/tools/pilluminati
+</pre>
+
+and you have a cluster with a head node @ngs-cluster@
+
+You get a notification that  Flowcell XYZ is done and ready for *primary analysis*. 
+
+First, we generate a *run* script that will 
+
+<pre>
+ssh ngs-cluster
+cd /n/ngs/tools/pilluminati
+
+./bin/startup_run.rb XYZ
+</pre>
+
+Where @XYZ@ is the flowcell ID for the flowcell you are running. 
+This will create a @XYZ.sh@ run script in your run folder. 
+
+Our run folder is in:
+
+<pre>
+/n/ngs/runs
+</pre>
+
+The @startup_run.rb@ has not done anything except create this run script. The run script will drive the primary analysis pipeline.
+
+We can look over the run script before executing it
+
+<pre>
+less /n/ngs/runs/XYZ.sh
+</pre>
+
+We see a lot of comments - mostly data output from LIMS. We also see a series of commands that will be executed. Look it over. 
+
+Most important is the comments that come after the @/n/ngs/tools/pilluminati/bin/config_maker.rb@. These comments represent what will go into our @config.txt@ and @SampleSheet.csv@ files. If something looks wrong, we can call this command manually beforehand, tweak the results, and comment it out of our run script.
+
+Once you are satisfied, all you have to do is run the run script...
+
+<pre>
+/n/ngs/runs/XYZ.sh
+</pre>
+
+Make sure to do that on the cluster head node (@ngs-cluster@). It will kick off the primary analysis pipeline which includes demultiplexing, alignment, and post processing. Emails will be sent to the pipeline administrator during the run process. When it is done, files should be in their project directories. LIMS should be updated with the QA/QC data. Everything should be beautiful.
+
+
 h2. What it does
 
 General overview of the execution of the analysis pipeline this tool performs:
