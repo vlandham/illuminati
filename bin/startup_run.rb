@@ -141,19 +141,22 @@ module Illuminati
 
       local_bcl2fastq_script_path = File.join(flowcell.unaligned_dir, BCL2FASTQ_SCRIPT)
 
-      command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path}"
+      if !@options[:fake]
 
-      if @options[:align]
-        align_options = @options[:postrun] ? "" : "--no-postrun"
-        align_command = "#{ALIGN_SCRIPT} #{flowcell.flowcell_id} #{align_options} > run_align.out 2>&1"
-        command += "  \"#{align_command}\""
+        command = "qsub -cwd -v PATH #{local_bcl2fastq_script_path}"
+
+        if @options[:align]
+          align_options = @options[:postrun] ? "" : "--no-postrun"
+          align_command = "#{ALIGN_SCRIPT} #{flowcell.flowcell_id} #{align_options} > run_align.out 2>&1"
+          command += "  \"#{align_command}\""
+        end
+
+        script.write command
       end
 
-      script.write command
       script.write ""
-
-      script.write "# after complete, run this command and paste results to wiki page"
-      script.write "# fc_info #{flowcell_id}"
+        #script.write "# after complete, run this command and paste results to wiki page"
+        #script.write "# fc_info #{flowcell_id}"
 
       script.close
     end
