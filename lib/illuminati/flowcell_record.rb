@@ -11,7 +11,7 @@ module Illuminati
   class Sample
     # This is all the sample data expected from the external data source.
     # See documentation in ExternalDataBase for more information
-    EXTERNAL_DATA = [:lane, :genome, :name, :protocol, :barcode, :barcode_type, :raw_barcode, :raw_barcode_type, :order, :lib_id]
+    EXTERNAL_DATA = [:lane, :genome, :name, :protocol, :barcode, :barcode_type, :barcode_location, :raw_barcode, :raw_barcode_type, :order, :order_type, :lib_id, :lab]
     attr_accessor *EXTERNAL_DATA
 
     attr_accessor :parent_lane
@@ -208,7 +208,7 @@ module Illuminati
       outputs.each_with_index do |output, index|
         data = {:output => output, :lane => lane, :name => name,
                 :illumina => illumina_barcode, :custom => custom_barcode,
-                :read => reads[index], :genome => genome, :order => order, :lib_id => lib_id}
+                :read => reads[index], :genome => genome, :order => order, :lib_id => lib_id, :order_type => order_type, :lab => lab}
         all_reads_data << data
       end
       all_reads_data

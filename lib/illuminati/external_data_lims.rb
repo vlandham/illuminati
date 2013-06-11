@@ -41,6 +41,7 @@ module Illuminati
     #   :barcode => If :barcode_type is not :none, this provides the 6 sequence barcode
     #   :raw_barcode => Sequence to feed back to LIMS for reported barcode. No restriction on content.
     #   :order => Sample order
+    #   :order_type => Descriptive text of order type
     #
     # }
     #
@@ -57,7 +58,7 @@ module Illuminati
         sample_data[:genome] = lims_sample_data["genomeVersion"]
         sample_data[:protocol] = (lims_sample_data["readType"] == "Single Read") ? "eland_extended" : "eland_pair"
         sample_data[:barcode_type] = case(lims_sample_data["indexType"])
-                                     when "ILL", "Illumina TruSeq", "Illumina"
+                                     when "ILL", "Illumina TruSeq", "Illumina", "NEB"
                                        :illumina
                                      when "CUST"
                                        :custom
@@ -101,6 +102,9 @@ module Illuminati
 
         sample_data[:lib_id] = lims_sample_data["libID"]
         sample_data[:order] = lims_sample_data["prnOrderNo"]
+        sample_data[:order_type] = lims_sample_data["orderType"]
+
+        sample_data[:lab] = lims_sample_data["reqLabName"]
 
 
         if lims_sample_data["isControl"] == 1

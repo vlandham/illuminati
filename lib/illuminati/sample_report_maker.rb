@@ -8,7 +8,7 @@ module Illuminati
   # Responsible for generating string to create Sample_Report.csv from.
   #
   class SampleReportMaker
-    DATA_NAMES = [:output, :order, :lane, :name, :lib_id, :illumina, :custom, :read, :genome]
+    DATA_NAMES = [:output, :order, :order_type, :lane, :name, :lib_id, :illumina, :custom, :read, :genome, :lab]
 
     #
     # Makes the SampleReport string. Not actually outputing it to file.
@@ -38,8 +38,8 @@ module Illuminati
         puts "Expected: #{@flowcell.paths.aligned_stats_dir}"
       end
 
-      sample_report = ["output", "order", "lane", "sample name", "library id", "illumina index",
-                       "custom barcode", "read", "reference"].join(",")
+      sample_report = ["output", "order", "order type", "lane", "sample name", "library id", "illumina index",
+                       "custom barcode", "read", "reference", "lab"].join(",")
       sample_report += ","
       sample_report += ["total reads", "pass filter reads", "pass filter percent"].join(",")
       sample_report += ","
