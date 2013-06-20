@@ -282,13 +282,23 @@ module Illuminati
       rtn
     end
 
+    def to_a
+      lane = []
+      samples.each do |sample|
+        lane << sample.to_h
+      end
+      lane
+    end
+
     #
     # Returns the first sample as a hash.
     # The idea being, all the lane data is really maintained in the Sample class
     # for convience. So, the first sample of the lane will have all the relevant lane
     # data.
     #
+    #
     def to_h
+
       samples[0].to_h if samples[0]
     end
 

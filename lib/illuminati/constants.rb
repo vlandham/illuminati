@@ -40,6 +40,9 @@ module Illuminati
   # Pattern to use when searching for the aligned stats directory.
   ELAND_STATS_PATTERN = config['eland_stats_pattern']
 
+  # where the genomes are stored.
+  GENOMES_ROOT = config['genomes_root']
+
 
   EMAIL_SERVER = config['email_server']
   WEB_DIR_ROOT = config['web_dir_root']

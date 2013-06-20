@@ -7,22 +7,18 @@ REFERENCE smed SAMTOOLS_GENOME /n/ngs/igenome/smed31/smed.fa
 REFERENCE smed31 SAMTOOLS_GENOME /n/ngs/igenome/smed31/smed.fa
 REFERENCE nemve1 SAMTOOLS_GENOME /n/ngs/igenome/nemve1/nemve1.fa
 <% @lanes.each do |lane| %>
-<% if !lane[:genome].empty? and File.exists?("/n/ngs/igenome/#{lane[:genome]}") %>
-<% if lane[:genome].strip == "smed" or  lane[:genome].strip == "smed31" %>
-<%= "#{lane[:lane]}:SAMTOOLS_GENOME /n/ngs/igenome/smed31/smed.fa\n" %>
+  <% if lane[:genomes].empty? %>
+<%= "#{lane[:lane]}:ANALYSIS none\n" %>
+    <% next %>
+  <% end %>
+  <% lane[:genomes].each do |genome| %>
+<%= "#{lane[:lane]}:REFERENCE #{genome[:name]} #{genome[:type]} #{genome[:path]}\n" %>
+  <% end %>
 <%= "#{lane[:lane]}:BARCODE Undetermined ANALYSIS none\n" %>
 <%= "#{lane[:lane]}:REFERENCE unknown ANALYSIS none\n" %>
-<% elsif lane[:genome].strip == "stella" or lane[:genome].strip == "nemve1" %>
-<%= "#{lane[:lane]}:SAMTOOLS_GENOME /n/ngs/igenome/nemve1/nemve1.fa\n" %>
-<%= "#{lane[:lane]}:BARCODE Undetermined ANALYSIS none\n" %>
-<%= "#{lane[:lane]}:REFERENCE unknown ANALYSIS none\n" %>
-<% else %>
-<%= "#{lane[:lane]}:ELAND_GENOME /n/ngs/igenome/#{lane[:genome]}\n" %>
-<% end %>
 <%= "#{lane[:lane]}:ANALYSIS #{lane[:protocol]}\n" %>
 <%= "#{lane[:lane]}:ELAND_MAX_MATCHES 10\n" %>
 <%= "#{lane[:lane]}:USE_BASES #{lane[:protocol] == "eland_pair" ? "Y*,Y*" : "Y*"}\n" %>
-<% else %>
-<%= "#{lane[:lane]}:ANALYSIS none\n" %>
 <% end %>
-<% end %>
+
+

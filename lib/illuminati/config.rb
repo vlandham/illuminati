@@ -37,7 +37,8 @@ module Illuminati
       config['fastq_stats_pattern'] ||= 'Basecall_Stats_*'
       config['eland_stats_pattern'] ||= 'Summary_Stats_*'
       config['email_server']        ||= 'localhost:25'
-      config['web_dir_root']        ||= 'http://molbio/solexaRuns/'
+      config['web_dir_root']        ||= 'http://bioinfo/n/'
+      config['genomes_root']        ||= '/n/ngs/igenome'
       config['num_leading_dirs_to_strip'] ||= '1'
       config['num_processes']       ||= 24
       config
