@@ -74,6 +74,12 @@ module Illuminati
 
         simple_lane[:genomes] = []
         genomes.each do |genome|
+          if genome.strip.empty?
+            next
+          end
+          if genome.strip.downcase == 'none'
+            next
+          end
           simple_genome = {}
           simple_genome[:name] = genome
           simple_genome[:type] = SAMTOOLS_GENOMES.keys.include?(genome) ? "SAMTOOLS_GENOME" : "ELAND_GENOME"
