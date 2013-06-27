@@ -119,6 +119,9 @@ module Illuminati
       lims_data["readNo"] = read
 
       lims_data["index"] = sample.raw_barcode unless sample.raw_barcode == ""
+      if lims_data['index'].index("-") != nil
+        lims_data['indexes'] = lims_data['index'].split("-")
+      end
 
       lims_data
     end

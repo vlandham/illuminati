@@ -82,8 +82,8 @@ module Illuminati
                                          end
 
         if lims_sample_data["indexSequences"] and !lims_sample_data["indexSequences"].empty?
-          sample_data[:barcode] = lims_sample_data["indexSequences"].collect {|s| s.strip}.join("_")
-          sample_data[:raw_barcode] = lims_sample_data["indexSequences"].collect {|s| s.strip}.join("_")
+          sample_data[:barcode] = lims_sample_data["indexSequences"].collect {|s| s.strip}.join("-")
+          sample_data[:raw_barcode] = lims_sample_data["indexSequences"].collect {|s| s.strip}.join("-")
         else
           sample_data[:barcode] =  ""
           sample_data[:raw_barcode] =  ""
